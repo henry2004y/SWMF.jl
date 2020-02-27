@@ -5,7 +5,7 @@ module SWMF
 
 using Glob, Printf, PyCall, Dierckx, WriteVTK
 
-export Data, FileList
+export Data, FileList, Vars
 
 struct Data{T}
    x::Array{T}
