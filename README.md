@@ -1,10 +1,13 @@
-# VisAna
+# SWMF
 [![](https://travis-ci.com/henry2004y/VisAnaJulia.svg?branch=master)][travis-url]
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![](https://img.shields.io/badge/docs-latest-blue.svg)][VisAna-doc]
 [![][codecov-img]][codecov-url]
 
-SWMF data reading, converting, visualizing and analyzing using Julia.
+SWMF data reader and converter using Julia.
+
+This is originally part of the [VisAna.jl](https://github.com/henry2004y/VisAnaJulia) package.
+Later this was moved out and became an stand-alone package for better usage in Python.
 
 For more details, please check the [document][VisAna-doc].
 
@@ -15,13 +18,13 @@ Julia 1.0+
 ## Installation
 ```
 using Pkg
-Pkg.add(PackageSpec(url="https://github.com/henry2004y/VisAnaJulia", rev="master"))
+Pkg.add(PackageSpec(url="https://github.com/henry2004y/SWMF", rev="master"))
 ```
 
 ## Usage
 ```
 #using Pkg; Pkg.activate(".") # for dev only
-using VisAna
+using SWMF
 ```
 
 See the [examples](docs/src/man/examples.md).
@@ -30,14 +33,8 @@ See the [examples](docs/src/man/examples.md).
 
 This package provides the following functionalities:
   * simulation data reader
-  * simulation data visualization
   * data format conversion
   * programming language interoperability
-  * data analysis in space physics
-  * test particle tracking
-
-The data analysis part includes spectral analysis, minimum variance analysis and
-many functions for aiding the interpretation of data.
 
 See [here](docs/src/man/guide.md) for some development thoughts.
 
