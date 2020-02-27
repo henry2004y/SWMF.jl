@@ -1,9 +1,9 @@
 # Functions
 
-## Functions exported from `VisAna`:
+## Functions exported from `SWMF`:
 
 ```@autodocs
-Modules = [VisAna]
+Modules = [SWMF]
 Private = false
 Order = [:function]
 ```
