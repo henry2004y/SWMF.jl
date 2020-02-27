@@ -14,10 +14,6 @@ branches:
   only:
     - master
 
-matrix:
-  allow_failures:
-    - julia: nightly
-
 notifications:
   email: false
 
@@ -26,6 +22,8 @@ after_success:
   - julia -e 'using Pkg; ENV["DOCUMENTER_DEBUG"] = "true"; include("docs/make.jl")'
 
 jobs:
+  allow_failures:
+    - julia: nightly
   include:
     - stage: "Documentation"
       julia: 1.3
