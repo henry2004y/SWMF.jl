@@ -29,7 +29,7 @@ using SWMF
 
 See the [examples](docs/src/man/examples.md).
 
-From Python, you can easily take advantage of this package with the aid of (PyJulia)[https://pyjulia.readthedocs.io/en/latest/]. 
+From Python, you can easily take advantage of this package with the aid of [PyJulia](https://pyjulia.readthedocs.io/en/latest/). 
 After the installation, in the Python repl:
 ```python
 from julia import SWMF
