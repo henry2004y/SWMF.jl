@@ -1,7 +1,7 @@
 # SWMF
-[![](https://travis-ci.com/henry2004y/VisAnaJulia.svg?branch=master)][travis-url]
+[![](https://travis-ci.com/henry2004y/SWMF.svg?branch=master)][travis-url]
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
-[![](https://img.shields.io/badge/docs-latest-blue.svg)][VisAna-doc]
+[![](https://img.shields.io/badge/docs-latest-blue.svg)][SWMF-doc]
 [![][codecov-img]][codecov-url]
 
 SWMF data reader and converter using Julia.
@@ -10,7 +10,7 @@ This is originally part of the [VisAna.jl](https://github.com/henry2004y/VisAnaJ
 Later this was moved out and became a stand-alone package for better usage in Python. 
 Note that you must have Julia and this package installed to successfully use it in Python.
 
-For more details, please check the [document][VisAna-doc].
+For more details, please check the [document][SWMF-doc].
 
 ## Prerequisites
 
@@ -57,7 +57,7 @@ See [here](docs/src/man/guide.md) for some development thoughts.
 
 * All the nice guys who share their codes!
 
-[travis-url]: https://travis-ci.com/henry2004y/VisAnaJulia/builds/
-[codecov-img]: https://codecov.io/gh/henry2004y/VisAnaJulia/branch/master/graph/badge.svg
-[codecov-url]: https://codecov.io/gh/henry2004y/VisAnaJulia
-[VisAna-doc]: https://henry2004y.github.io/VisAnaJulia/dev
+[travis-url]: https://travis-ci.com/henry2004y/SWMF/builds/
+[codecov-img]: https://codecov.io/gh/henry2004y/SWMF/branch/master/graph/badge.svg
+[codecov-url]: https://codecov.io/gh/henry2004y/SWMF
+[SWMF-doc]: https://henry2004y.github.io/SWMF/dev
