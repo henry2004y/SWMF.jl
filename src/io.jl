@@ -886,3 +886,15 @@ function convertVTK(head::Dict, data::Array{Float32,2},
 
    outfiles = vtk_save(vtkfile)
 end
+
+function swaprows(X::Array{Int32,2}, i, j)
+   m, n = size(X)
+   if (1 <= i <= n) && (1 <= j <= n)
+      for k = 1:n
+        @inbounds X[i,k],X[j,k] = X[j,k],X[i,k]
+      end
+      return X
+   else
+      throw(BoundsError())
+   end
+end
