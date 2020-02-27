@@ -1,9 +1,9 @@
 # Private types
 
-## Private types in module `VisAna`:
+## Private types in module `SWMF`:
 
 ```@autodocs
-Modules = [VisAna]
+Modules = [SWMF]
 Public = false
 Order = [:type]
 ```
