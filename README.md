@@ -4,10 +4,10 @@
 [![](https://img.shields.io/badge/docs-latest-blue.svg)][SWMF-doc]
 [![][codecov-img]][codecov-url]
 
-SWMF data reader and converter using Julia.
+The fastest SWMF data reader and converter using Julia.
 
 This is originally part of the [VisAna.jl](https://github.com/henry2004y/VisAnaJulia) package.
-Later this was moved out and became a stand-alone package for better usage in Python. 
+Later this was moved out and became a stand-alone package. 
 Note that you must have Julia and this package installed to successfully use it in Python.
 
 For more details, please check the [document][SWMF-doc].
