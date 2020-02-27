@@ -29,6 +29,16 @@ using SWMF
 
 See the [examples](docs/src/man/examples.md).
 
+From Python, you can easily take advantage of this package with the aid of (PyJulia)[https://pyjulia.readthedocs.io/en/latest/]. 
+After the installation, in the Python repl:
+```python
+from julia import SWMF
+dir = 'test'
+filename = '1d__raw_2_t25.60000_n00000258.out'
+head, data, filelist = SWMF.readdata(filename, dir=dir)
+```
+Here you have it! Enjoy!
+
 ## Guides
 
 This package provides the following functionalities:
