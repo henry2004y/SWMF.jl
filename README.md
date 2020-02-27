@@ -7,7 +7,7 @@
 SWMF data reader and converter using Julia.
 
 This is originally part of the [VisAna.jl](https://github.com/henry2004y/VisAnaJulia) package.
-Later this was moved out and became an stand-alone package for better usage in Python. 
+Later this was moved out and became a stand-alone package for better usage in Python. 
 Note that you must have Julia and this package installed to successfully use it in Python.
 
 For more details, please check the [document][VisAna-doc].
