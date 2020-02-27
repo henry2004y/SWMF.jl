@@ -1,4 +1,4 @@
-module VisAna
+module SWMF
 # BATSRUS data reader and analyzer.
 #
 # Hongyang Zhou, hyzhou@umich.edu
@@ -24,8 +24,5 @@ struct Vars
 end
 
 include("io.jl")
-include("visual.jl")
-include("trace.jl")
-#include("visual_plot.jl")
 
 end
