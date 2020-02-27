@@ -37,7 +37,7 @@ dir = 'test'
 filename = '1d__raw_2_t25.60000_n00000258.out'
 head, data, filelist = SWMF.readdata(filename, dir=dir)
 ```
-Here you have it! Enjoy!
+There you have it! Enjoy!
 
 ## Guides
 
