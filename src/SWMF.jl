@@ -3,7 +3,7 @@ module SWMF
 #
 # Hongyang Zhou, hyzhou@umich.edu
 
-using Glob, Printf, PyCall, Dierckx, WriteVTK
+using Glob, Printf, WriteVTK
 
 export Data, FileList, Vars
 
