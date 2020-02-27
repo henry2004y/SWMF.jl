@@ -839,3 +839,50 @@ function showhead(file::FileList, ifile::Int, head::Dict)
       println("=======================")
    end
 end
+
+"""
+	convertVTK(head, data, connectivity, filename)
+
+Convert 3D unstructured Tecplot data to VTK. Note that if using voxel type data
+in VTK, the connectivity sequence is different from Tecplot.
+"""
+function convertVTK(head::Dict, data::Array{Float32,2},
+   connectivity::Array{Int32,2}, filename="3DBATSRUS")
+
+   nVar = length(head[:variables])
+
+   points = @view data[1:head[:ndim],:]
+   cells = Vector{MeshCell{Array{Int32,1}}}(undef,head[:nCell])
+   if head[:ndim] == 3
+      # PLT to VTK index_ = [1 2 4 3 5 6 8 7]
+      for i = 1:2
+         connectivity = swaprows(connectivity, 4*i-1, 4*i)
+      end
+      @inbounds for i = 1:head[:nCell]
+         cells[i] = MeshCell(VTKCellTypes.VTK_VOXEL, connectivity[:,i])
+      end
+   elseif head[:ndim] == 2
+      @inbounds for i = 1:head[:nCell]
+         cells[i] = MeshCell(VTKCellTypes.VTK_PIXEL, connectivity[:,i])
+      end
+   end
+
+   vtkfile = vtk_grid(filename, points, cells)
+
+   for ivar = head[:ndim]+1:nVar
+      if occursin("_x",head[:variables][ivar]) # vector
+         var1 = @view data[ivar,:]
+         var2 = @view data[ivar+1,:]
+         var3 = @view data[ivar+2,:]
+         namevar = replace(head[:variables][ivar], "_x"=>"")
+         vtk_point_data(vtkfile, (var1, var2, var3), namevar)
+      elseif occursin(r"(_y|_z)",head[:variables][ivar])
+         continue
+      else
+         var = @view data[ivar,:]
+         vtk_point_data(vtkfile, var, head[:variables][ivar])
+      end
+   end
+
+   outfiles = vtk_save(vtkfile)
+end
