@@ -2,7 +2,7 @@
 #
 # Hongyang Zhou, hyzhou@umich.edu 07/23/2019
 
-using VisAna, WriteVTK
+using SWMF, WriteVTK
 try
    using MATLAB
 catch
