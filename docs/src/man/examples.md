@@ -11,6 +11,12 @@ head, data, list = readdata(filename, npict=1);
 head, data, list = readdata(filename, dir=".");
 ```
 
+- 3D structured spherical coordinates
+```
+filename = "3d_structured.out";
+head, data, list = readdata(filename, verbose=false);
+```
+
 - log file
 ```
 logfilename = "shocktube.log";
