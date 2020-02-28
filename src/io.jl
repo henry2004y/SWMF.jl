@@ -613,7 +613,7 @@ optional distunit, Mion and Melectron.
 Also calculate convenient constants ti0, cs0 ... for typical formulas.
 This function needs to be improved!
 """
-function setunits( filehead::Dict, type::String; distunit=1.0,
+function setunits( filehead::Dict, type::AbstractString; distunit=1.0,
    Mion=1.0, Melectron=1.0)
 
    # This is currently not used, so return here
@@ -845,8 +845,7 @@ end
 Convert 3D unstructured Tecplot data to VTK. Note that if using voxel type data
 in VTK, the connectivity sequence is different from Tecplot.
 """
-function convertVTK(head::Dict, data::Array{AbstractFloat,2},
-   connectivity::Array{Int,2}, filename="3DBATSRUS")
+function convertVTK(head, data, connectivity, filename="3DBATSRUS")
 
    nVar = length(head[:variables])
 
@@ -886,9 +885,9 @@ function convertVTK(head::Dict, data::Array{AbstractFloat,2},
    outfiles = vtk_save(vtkfile)
 end
 
-function swaprows!(X::Array{Int,2}, i, j)
+function swaprows!(X, i, j)
    m, n = size(X)
-   if (1 <= i <= n) && (1 <= j <= n)
+   if (1 ≤ i ≤ n) && (1 ≤ j ≤ n)
       for k = 1:n
         @inbounds X[i,k],X[j,k] = X[j,k],X[i,k]
       end
