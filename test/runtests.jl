@@ -28,8 +28,13 @@ end
 end
 
 @testset "reading 3D structured binary" begin
-   #filename = "3d_structured.out";
-   #head, data, list = readdata(filename,verbose=false);
+   filename = "3d_raw.out"
+   head, data, list = readdata(filename)
+   plotrange = [-50.0, 50.0, -0.5, 0.5]
+   X, Z, p = cutdata(data[1],head[1],"p",
+      cut='y', cutPlaneIndex=1, plotrange=plotrange)
+   @test p[1] ≈ 0.560976f0
+   @test p[2] ≈ 0.53704995f0
 end
 
 @testset "log" begin

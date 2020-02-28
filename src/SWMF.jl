@@ -24,5 +24,6 @@ struct Vars
 end
 
 include("io.jl")
+include("select.jl")
 
 end
