@@ -15,8 +15,7 @@ filenames = "1d_raw*"
 head, data, list = readdata(filenames)
 ```
 """
-function readdata( filenamesIn::String; dir::String=".", npict::Int=1,
-   verbose::Bool=false )
+function readdata(filenamesIn::AbstractString; dir=".", npict=1, verbose=false)
 
    # Check the existence of files
    filenames = glob(filenamesIn, dir)
@@ -88,14 +87,14 @@ end
 
 Read information from log file.
 """
-function readlogdata( filename::String )
+function readlogdata( filename::AbstractString )
    # Is this really necessary?
-   head = Dict(:ndim => 3, :headline => "", :it => Int32(-1.0),
+   head = Dict(:ndim => 3, :headline => "", :it => Int32(-1),
    :time => Float32(-1.0), :gencoord => false, :neqpar => Int32(0), :nw => 1,
    :nx => [Int32(0)], :variables => Array{String,1}(undef,1))
 
    f = open(filename, "r")
-   nLine = countlines(f)-2
+   nLine = countlines(f) - 2
    seekstart(f)
    head[:headline]  = readline(f)
    head[:variables] = split(readline(f))
@@ -128,7 +127,7 @@ filename = "3d_ascii.dat"
 head, data, connectivity = readtecdata(filename)
 ```
 """
-function readtecdata(filename::String; IsBinary=false, verbose=false)
+function readtecdata(filename::AbstractString; IsBinary=false, verbose=false)
 
    f = open(filename)
 
@@ -261,7 +260,7 @@ Get the type of files.
 - `fileID::Vector{IOStream}`: file IOStream for accessing data.
 - `pictsize::Int`: size (in bytes) of one snapshot.
 """
-function getFileTypes(nfile::Int, filenames::Array{String,1})
+function getFileTypes(nfile::Int, filenames::Vector{String})
 
    fileID   = Vector{IOStream}(undef,nfile)
    pictsize = Vector{Int64}(undef,nfile)
@@ -337,7 +336,7 @@ function getfilehead(fileID::IOStream, type::String)
    pictsize = 0
 
    # Create a struct for substituting common block file_head
-   head = Dict(:ndim => 3, :headline => "", :it => Int32(-1.0),
+   head = Dict(:ndim => 3, :headline => "", :it => Int32(-1),
       :time => Float32(-1.0),
       :gencoord => false, :neqpar => Int32(0), :nw => 1, :nx => [Int32(0)],
       :eqpar => [Float32(0.0)], :variables => Array{String,1}(undef,1),
@@ -614,7 +613,7 @@ optional distunit, Mion and Melectron.
 Also calculate convenient constants ti0, cs0 ... for typical formulas.
 This function needs to be improved!
 """
-function setunits( filehead::Dict,type::String; distunit=1.0,
+function setunits( filehead::Dict, type::String; distunit=1.0,
    Mion=1.0, Melectron=1.0)
 
    # This is currently not used, so return here
@@ -846,8 +845,8 @@ end
 Convert 3D unstructured Tecplot data to VTK. Note that if using voxel type data
 in VTK, the connectivity sequence is different from Tecplot.
 """
-function convertVTK(head::Dict, data::Array{Float32,2},
-   connectivity::Array{Int32,2}, filename="3DBATSRUS")
+function convertVTK(head::Dict, data::Array{AbstractFloat,2},
+   connectivity::Array{Int,2}, filename="3DBATSRUS")
 
    nVar = length(head[:variables])
 
@@ -856,7 +855,7 @@ function convertVTK(head::Dict, data::Array{Float32,2},
    if head[:ndim] == 3
       # PLT to VTK index_ = [1 2 4 3 5 6 8 7]
       for i = 1:2
-         connectivity = swaprows(connectivity, 4*i-1, 4*i)
+         connectivity = swaprows!(connectivity, 4*i-1, 4*i)
       end
       @inbounds for i = 1:head[:nCell]
          cells[i] = MeshCell(VTKCellTypes.VTK_VOXEL, connectivity[:,i])
@@ -887,7 +886,7 @@ function convertVTK(head::Dict, data::Array{Float32,2},
    outfiles = vtk_save(vtkfile)
 end
 
-function swaprows(X::Array{Int32,2}, i, j)
+function swaprows!(X::Array{Int,2}, i, j)
    m, n = size(X)
    if (1 <= i <= n) && (1 <= j <= n)
       for k = 1:n
