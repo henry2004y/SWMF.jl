@@ -58,7 +58,7 @@ Data loading speed of a 2.4GB 3D binary file on Macbook Pro with quad core 2.2 G
 | IDL    | 6.00   | 6.18   | 6.08      |
 | MATLAB | 6.67   | 16.02  | 10.60     |
 
-For dynamic languages, the first time when function gets executed is usually the also the slowest.
+For dynamic languages, the first time when function gets executed is usually also the slowest.
 
 ## Author
 
