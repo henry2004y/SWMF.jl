@@ -48,6 +48,11 @@ Data loading speed of a 2.4GB 3D binary file on Macbook Pro with quad core 2.2 G
 | IDL    | 6.00s   | 6.18s   | 6.08s      |
 | MATLAB | 6.67s   | 16.02s  | 10.60s     |
 
+| object | implemented |      value |
+|--------|-------------|------------|
+| `A`    |      ✓      |      10.00 |
+| `BB`   |      ✓      | 1000000.00 |
+
 ## Developers
 
 VisAna is developed by [Hongyang Zhou](https://github.com/henry2004y).
