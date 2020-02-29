@@ -6,7 +6,7 @@ export readdata, readlogdata, readtecdata, convertVTK
 	readdata(filenames,(, dir=".", npict=1, verbose=false))
 
 Read data from BATSRUS output files. Stores the npict-th snapshot from an ascii
-or binary data file into the x [coordinates] and w [data] arrays.
+or binary data file into the coordinates `x` and data `w` arrays.
 Filenames can be provided with wildcards.
 
 # Examples
@@ -120,7 +120,7 @@ end
 	readtecdata(filename, IsBinary=false, verbose=false)
 
 Return header, data and connectivity from BATSRUS Tecplot outputs. Both binary
-and ascii formats are supported.
+and ASCII formats are supported. The default is reading pure ASCII data.
 # Examples
 ```jldoctest
 filename = "3d_ascii.dat"
