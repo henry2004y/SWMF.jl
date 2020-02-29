@@ -38,6 +38,16 @@ Pages = [
 Depth = 1
 ```
 
+## Benchmark
+
+Data loading speed of a 2.4GB 3D binary file on Macbook Pro with quad core 2.2 GHz Intel i7 and 16 GB 1600 MHz DDR3:
+
+|        | tmin [s] | tmax [s] | tmean [s] |
+|--------|--------|--------|-----------|
+| Julia  | 1.44   | 3.77   | 2.07      |
+| IDL    | 6.00   | 6.18   | 6.08      |
+| MATLAB | 6.67   | 16.02  | 10.60     |
+
 ## Developers
 
 VisAna is developed by [Hongyang Zhou](https://github.com/henry2004y).

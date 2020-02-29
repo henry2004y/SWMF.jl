@@ -7,8 +7,14 @@
 The fastest SWMF data reader and converter using Julia.
 
 This is originally part of the [VisAna.jl](https://github.com/henry2004y/VisAnaJulia) package.
-Later this was moved out and became a stand-alone package. 
+Later this was moved out and became a stand-alone package.
 Note that you must have Julia and this package installed to successfully use it in Python.
+
+This package provides the following functionalities:
+  * simulation data reader
+  * 2D/3D region cut from the whole data
+  * data format conversion
+  * programming language interoperability
 
 For more details, please check the [document][SWMF-doc].
 
@@ -28,9 +34,11 @@ Pkg.add(PackageSpec(url="https://github.com/henry2004y/SWMF", rev="master"))
 using SWMF
 ```
 
-See the [examples](docs/src/man/examples.md).
+See the [examples](https://henry2004y.github.io/SWMF/dev/man/examples/).
 
-From Python, you can easily take advantage of this package with the aid of [PyJulia](https://pyjulia.readthedocs.io/en/latest/). 
+### Using from Python
+
+In Python, you can easily take advantage of this package with the aid of [PyJulia](https://pyjulia.readthedocs.io/en/latest/).
 After the installation, in the Python repl:
 ```python
 from julia import SWMF
@@ -40,14 +48,15 @@ head, data, filelist = SWMF.readdata(filename, dir=dir)
 ```
 There you have it! Enjoy!
 
-## Guides
+## Benchmark
 
-This package provides the following functionalities:
-  * simulation data reader
-  * data format conversion
-  * programming language interoperability
+Data loading speed of a 2.4GB 3D binary file on Macbook Pro with quad core 2.2 GHz Intel i7 and 16 GB 1600 MHz DDR3:
 
-See [here](docs/src/man/guide.md) for some development thoughts.
+|        | tmin [s] | tmax [s] | tmean [s] |
+|--------|--------|--------|-----------|
+| Julia  | 1.44   | 3.77   | 2.07      |
+| IDL    | 6.00   | 6.18   | 6.08      |
+| MATLAB | 6.67   | 16.02  | 10.60     |
 
 ## Author
 
