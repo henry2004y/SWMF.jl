@@ -2,8 +2,10 @@
 
 export readdata, readlogdata, readtecdata, convertVTK
 
+searchdir(path,key) = filter(x->occursin(key,x), readdir(path))
+
 """
-	readdata(filenames,(, dir=".", npict=1, verbose=false))
+	readdata(filenameIn, (, dir=".", npict=1, verbose=false))
 
 Read data from BATSRUS output files. Stores the npict-th snapshot from an ascii
 or binary data file into the coordinates `x` and data `w` arrays.
@@ -11,75 +13,62 @@ Filenames can be provided with wildcards.
 
 # Examples
 ```jldoctest
-filenames = "1d_raw*"
-head, data, list = readdata(filenames)
+filename = "1d_raw*"
+data = readdata(filename)
 ```
 """
-function readdata(filenamesIn::AbstractString; dir=".", npict=1, verbose=false)
+function readdata(filenameIn::AbstractString; dir=".", npict=1, verbose=false)
 
    # Check the existence of files
-   filenames = glob(filenamesIn, dir)
+	filenames = searchdir(dir, Regex(filenameIn)) # potential bugs
    if isempty(filenames)
-      error("readdata: no matching filename was found for $(filenamesIn)")
+      @error "readdata: no matching filename was found for $(filenameIn)"
+   elseif length(filenames) > 1
+      @error "Ambiguous filenames!"
    end
 
-   nfile = length(filenames)
-
-   fileheads = Vector{Dict}(undef,0)
-   data = Vector{Data}()
-
-   filelist, fileID, pictsize = getFileTypes(nfile, filenames)
+	filename = joinpath(dir, filenames[1])
+   filelist, fileID, pictsize = getFileType(filename)
 
    if verbose
-      [println("filename=$(filelist[i].name)\n"*
-      "npict=$(filelist[i].npictinfiles)") for i in eachindex(filelist)]
+      @info "filename=$(filelist.name)\n"*"npict=$(filelist.npictinfiles)"
    end
 
-   for ifile = 1:nfile
-      if any(filelist[ifile].npictinfiles - npict < 0)
-         @error "file $(ifile): npict out of range!"
-      end
-      seekstart(fileID[ifile])
+   if any(filelist.npictinfiles - npict < 0)
+      @error "file $(ifile): npict out of range!"
    end
+   seekstart(fileID) # Rewind to start
 
    ## Read data from files
-   for ifile = 1:nfile
-      # Skip npict-1 snapshots (because we only want npict snapshot)
-      skip(fileID[ifile], pictsize[ifile]*(npict-1))
 
-      filehead = getfilehead(fileID[ifile], filelist[ifile].type)
-      push!(fileheads, filehead)
+   # Skip npict-1 snapshots (because we only want npict snapshot)
+   skip(fileID, pictsize*(npict-1))
 
-      # Read data
-      fileType = lowercase(filelist[ifile].type)
-      if fileType == "ascii"
-         x,w = getpictascii(fileID[ifile], fileheads[ifile])
-      elseif fileType == "binary"
-         x,w = getpictreal(fileID[ifile], fileheads[ifile], Float64)
-      elseif fileType == "real4"
-         x,w = getpictreal(fileID[ifile], fileheads[ifile], Float32)
-      else
-         @error "get_pict: unknown filetype: $(filelist[ifile].type)"
-      end
+   filehead = getfilehead(fileID, filelist.type)
 
-      setunits(fileheads[ifile],"")
-
-      verbose && showhead(filelist[ifile], ifile, fileheads[ifile])
-
-      # Produce a wnames from the last file
-      fileheads[ifile][:wnames] =
-      fileheads[ifile][:variables][
-      fileheads[ifile][:ndim]+1:fileheads[ifile][:ndim]+
-      fileheads[ifile][:nw] ]
-
-      push!(data, Data(x,w))
-
-      verbose && println("Finished reading $(filelist[ifile].name)")
-
-      close(fileID[ifile])
+   # Read data
+   fileType = lowercase(filelist.type)
+   if fileType == "ascii"
+      x,w = getpictascii(fileID, filehead)
+   elseif fileType == "binary"
+      x,w = getpictreal(fileID, filehead, Float64)
+   elseif fileType == "real4"
+      x,w = getpictreal(fileID, filehead, Float32)
+   else
+      @error "get_pict: unknown filetype: $(filelist[ifile].type)"
    end
 
-   return fileheads, data, filelist
+   #setunits(filehead,"")
+
+   verbose && showhead(filelist, filehead)
+
+	data = Data(filehead, x, w, filelist)
+
+   verbose && @info "Finished reading $(filelist.name)"
+
+   close(fileID)
+
+   return data
 end
 
 """
@@ -244,77 +233,60 @@ function readtecdata(filename::AbstractString; IsBinary=false, verbose=false)
 
    close(f)
 
-   head = Dict(:variables=>VARS, :nNode=>nNode, :nCell=>nCell, :ndim=>ndim,
-      :ET=>ET,:title=>title)
+   head = (variables=VARS, nNode=nNode, nCell=nCell, ndim=ndim, ET=ET,
+		title=title)
 
    return head, data, connectivity
 end
 
 
-"""
-	getFileTypes(nfile, filenames, dir)
+"Obtain file type."
+function getFileType(filename)
 
-Get the type of files.
-# Output arguments
-- `filelist::FileList`: fulfilled file structs.
-- `fileID::Vector{IOStream}`: file IOStream for accessing data.
-- `pictsize::Int`: size (in bytes) of one snapshot.
-"""
-function getFileTypes(nfile::Int, filenames::Vector{String})
+   fileID = open(filename, "r")
+   bytes = filesize(filename)
+   type  = ""
 
-   fileID   = Vector{IOStream}(undef,nfile)
-   pictsize = Vector{Int64}(undef,nfile)
+   # Check the appendix of file names
+   # Gabor uses a trick: the first 4 bytes decides the file type
+   if occursin(r"^.*\.(log)$", filename)
+      type = "log"
+      npictinfiles = 1
+   elseif occursin(r"^.*\.(dat)$", filename)
+      # Tecplot ascii format
+      type = "dat"
+      npictinfiles = 1
+   else
+      # Obtain filetype based on the length info in the first 4 bytes
+      lenhead = read(fileID, Int32)
 
-   filelist = Vector{FileList}(undef,nfile)
-
-   for ifile = 1:nfile
-      f = filenames[ifile]
-      fileID[ifile] = open(f,"r")
-
-      bytes = filesize(filenames[ifile])
-      type  = ""
-
-      # Check the appendix of file names
-      # Gabor uses a trick: the first 4 bytes decides the file type()
-      if occursin(r"^.*\.(log)$", filenames[ifile])
-         type = "log"
-         npictinfiles = 1
-      elseif occursin(r"^.*\.(dat)$", filenames[ifile])
-         # Tecplot ascii format
-         type = "dat"
-         npictinfiles = 1
+      if lenhead!=79 && lenhead!=500
+         type = "ascii"
       else
-         # Obtain filetype based on the length info in the first 4 bytes
-         lenhead = read(fileID[ifile], Int32)
-
-         if lenhead!=79 && lenhead!=500
-            type = "ascii"
+         # The length of the 2nd line decides between real4 & real8
+         # since it contains the time; which is real*8 | real*4
+         skip(fileID, lenhead+4)
+         len = read(fileID, Int32)
+         if len == 20
+            type = "real4"
+         elseif len == 24
+            type = "binary"
          else
-            # The length of the 2nd line decides between real4 & real8
-            # since it contains the time; which is real*8 | real*4
-            skip(fileID[ifile],lenhead+4)
-            len = read(fileID[ifile],Int32)
-            if len == 20
-               type = "real4"
-            elseif len == 24
-               type = "binary"
-            else
-               @error "Error in getFileTypes: strange unformatted file:
-                  $(filelist[ifile].name)"
-            end
-
-            if lenhead == 500
-               type = uppercase(type)
-            end
+            @error "Error in getFileTypes: strange unformatted file:
+               $(filename)"
          end
+
+         if lenhead == 500
+            type = uppercase(type)
+         end
+      end
          # Obtain file size & number of snapshots
-         seekstart(fileID[ifile])
-         pictsize[ifile] = getfilesize(fileID[ifile], type)
-         npictinfiles = floor(Int, bytes / pictsize[ifile])
+         seekstart(fileID)
+         pictsize = getfilesize(fileID, type)
+         npictinfiles = floor(Int, bytes / pictsize)
       end
 
-      filelist[ifile] = FileList(filenames[ifile], type, bytes, npictinfiles)
-   end
+      filelist = FileList(filename, type, bytes, npictinfiles)
 
    return filelist, fileID, pictsize
 end
@@ -328,19 +300,9 @@ Obtain the header information from BATSRUS output files.
 - `type::String`: file type in ["ascii", "real4", "binary", "log"].
 - `iargout::Int`: 1 for output pictsize, 2 for output filehead.
 # Output arguments
-- `pictsize::Int`: size of a single snapshot in bytes.
-- `filehead::Dict`: file header info.
+- `filehead::NamedTuple`: file header info.
 """
 function getfilehead(fileID::IOStream, type::String)
-
-   pictsize = 0
-
-   # Create a struct for substituting common block file_head
-   head = Dict(:ndim => 3, :headline => "", :it => Int32(-1),
-      :time => Float32(-1.0),
-      :gencoord => false, :neqpar => Int32(0), :nw => 1, :nx => [Int32(0)],
-      :eqpar => [Float32(0.0)], :variables => Array{String,1}(undef,1),
-      :wnames => Array{String,1}(undef,1))
 
    ftype = string(lowercase(type))
 
@@ -350,39 +312,39 @@ function getfilehead(fileID::IOStream, type::String)
    pointer0 = position(fileID)
 
    if ftype == "ascii"
-      head[:headline] = readline(fileID)
+      headline = readline(fileID)
       line = readline(fileID)
       line = split(line)
-      head[:it] = parse(Int,line[1])
-      head[:time] = parse(Float64,line[2])
-      head[:ndim] = parse(Int8,line[3])
-      head[:neqpar] = parse(Int32,line[4])
-      head[:nw] = parse(Int8,line[5])
-      head[:gencoord] = head[:ndim] < 0
-      head[:ndim] = abs(head[:ndim])
-      head[:nx] = parse.(Int64, split(readline(fileID)))
-      if head[:neqpar] > 0
-         head[:eqpar] = parse.(Float64, split(readline(fileID)))
+      it = parse(Int,line[1])
+      t = parse(Float64,line[2])
+      ndim = parse(Int8,line[3])
+      neqpar = parse(Int32,line[4])
+      nw = parse(Int8,line[5])
+      gencoord = ndim < 0
+      ndim = abs(ndim)
+      nx = parse.(Int64, split(readline(fileID)))
+      if neqpar > 0
+         eqpar = parse.(Float64, split(readline(fileID)))
       end
       varname = readline(fileID)
    elseif ftype ∈ ["real4","binary"]
       skip(fileID,4) # skip record start tag.
-      head[:headline] = String(read(fileID, lenstr))
+      headline = String(read(fileID, lenstr))
       skip(fileID,8) # skip record end/start tags.
-      head[:it] = read(fileID,Int32)
-      head[:time] = read(fileID,Float32)
-      head[:ndim] = read(fileID,Int32)
-      head[:gencoord] = (head[:ndim] .< 0)
-      head[:ndim] = abs(head[:ndim])
-      head[:neqpar] = read(fileID,Int32)
-      head[:nw] = read(fileID,Int32)
+      it = read(fileID, Int32)
+      t = read(fileID, Float32)
+      ndim = read(fileID, Int32)
+      gencoord = (ndim < 0)
+      ndim = abs(ndim)
+      neqpar = read(fileID, Int32)
+      nw = read(fileID, Int32)
       skip(fileID,8) # skip record end/start tags.
-      head[:nx] = zeros(Int32,head[:ndim])
-      read!(fileID,head[:nx])
+      nx = zeros(Int32, ndim)
+      read!(fileID, nx)
       skip(fileID,8) # skip record end/start tags.
-      if head[:neqpar] > 0
-         head[:eqpar] = zeros(Float32,head[:neqpar])
-         read!(fileID,head[:eqpar])
+      if neqpar > 0
+         eqpar = zeros(Float32,neqpar)
+         read!(fileID, eqpar)
          skip(fileID,8) # skip record end/start tags.
       end
       varname = String(read(fileID, lenstr))
@@ -394,21 +356,17 @@ function getfilehead(fileID::IOStream, type::String)
    headlen = pointer1 - pointer0
 
    # Calculate the snapshot size = header + data + recordmarks
-   nxs = prod(head[:nx])
-
-   if ftype == "log"
-      pictsize = 1
-   elseif ftype == "ascii"
-      pictsize = headlen + (18*(head[:ndim]+head[:nw])+1)*nxs
-   elseif ftype == "binary"
-      pictsize = headlen + 8*(1+head[:nw]) + 8*(head[:ndim]+head[:nw])*nxs
-   elseif ftype == "real4"
-      pictsize = headlen + 8*(1+head[:nw]) + 4*(head[:ndim]+head[:nw])*nxs
-   end
+   nxs = prod(nx)
 
    # Set variables array
-   head[:variables] = split(varname) # returns a string array
-   return head
+   variables = split(varname) # returns a string array
+
+	# Produce a wnames from the last file
+   wnames = variables[ndim+1:ndim+nw]
+
+	head = (ndim=ndim, headline=headline, it=it, time=t, gencoord=gencoord,
+		neqpar=neqpar, nw=nw, nx=nx, eqpar=eqpar, variables=variables,
+		wnames=wnames)
 end
 
 """ Return the size of file. """
@@ -505,14 +463,14 @@ end
 
 Read ascii format data.
 """
-function getpictascii(fileID::IOStream, filehead::Dict)
+function getpictascii(fileID::IOStream, filehead::NamedTuple)
 
-   ndim = filehead[:ndim]
-   nw   = filehead[:nw]
+   ndim = filehead.ndim
+   nw   = filehead.nw
 
    # Read coordinates & values row by row
    if ndim == 1 # 1D
-      n1 = filehead[:nx][1]
+      n1 = filehead.nx[1]
       x  = Array{Float64,2}(undef,n1,ndim)
       w  = Array{Float64,2}(undef,n1,nw)
       for ix = 1:n1
@@ -521,8 +479,7 @@ function getpictascii(fileID::IOStream, filehead::Dict)
          w[ix,:] .= temp[2:end]
       end
    elseif ndim == 2 # 2D
-      n1 = filehead[:nx][1]
-      n2 = filehead[:nx][2]
+      n1, n2 = filehead.nx
       x  = Array{Float64,3}(undef,n1,n2,ndim)
       w  = Array{Float64,3}(undef,n1,n2,nw)
       for i = 1:n1, j = 1:n2
@@ -531,9 +488,7 @@ function getpictascii(fileID::IOStream, filehead::Dict)
          w[i,j,:] .= temp[3:end]
       end
    elseif ndim == 3 # 3D
-      n1 = filehead[:nx][1]
-      n2 = filehead[:nx][2]
-      n3 = filehead[:nx][3]
+      n1, n2, n3 = filehead.nx
       x  = Array{Float64,4}(undef,n1,n2,n3,ndim)
       w  = Array{Float64,4}(undef,n1,n2,n3,nw)
       for i = 1:n1, j = 1:n2, k = 1:n3
@@ -552,14 +507,14 @@ end
 
 Read real4/read8 format data.
 """
-function getpictreal(fileID::IOStream, filehead::Dict, T::DataType)
+function getpictreal(fileID::IOStream, filehead::NamedTuple, T::DataType)
 
-   ndim = filehead[:ndim]
-   nw   = filehead[:nw]
+   ndim = filehead.ndim
+   nw   = filehead.nw
 
    # Read coordinates & values
    if ndim == 1 # 1D
-      n1 = filehead[:nx][1]
+      n1 = filehead.nx[1]
       x  = Array{T,2}(undef,n1,ndim)
       w  = Array{T,2}(undef,n1,nw)
       skip(fileID,4) # skip record start tag.
@@ -570,8 +525,7 @@ function getpictreal(fileID::IOStream, filehead::Dict, T::DataType)
          skip(fileID,8) # skip record end/start tags.
       end
    elseif ndim == 2 # 2D
-      n1 = filehead[:nx][1]
-      n2 = filehead[:nx][2]
+      n1, n2 = filehead.nx
       x  = Array{T,3}(undef,n1,n2,ndim)
       w  = Array{T,3}(undef,n1,n2,nw)
       skip(fileID,4) # skip record start tag.
@@ -582,9 +536,7 @@ function getpictreal(fileID::IOStream, filehead::Dict, T::DataType)
          skip(fileID,8) # skip record end/start tags.
       end
    elseif ndim == 3 # 3D
-      n1 = filehead[:nx][1]
-      n2 = filehead[:nx][2]
-      n3 = filehead[:nx][3]
+      n1, n2, n3 = filehead.nx
       x  = Array{T,4}(undef,n1,n2,n3,ndim)
       w  = Array{T,4}(undef,n1,n2,n3,nw)
       skip(fileID,4) # skip record start tag.
@@ -613,18 +565,18 @@ optional distunit, Mion and Melectron.
 Also calculate convenient constants ti0, cs0 ... for typical formulas.
 This function needs to be improved!
 """
-function setunits( filehead::Dict, type::AbstractString; distunit=1.0,
+function setunits( filehead::NamedTuple, type::AbstractString; distunit=1.0,
    Mion=1.0, Melectron=1.0)
 
    # This is currently not used, so return here
    return
 
-   ndim      = filehead[:ndim]
-   headline  = filehead[:headline]
-   neqpar    = filehead[:neqpar]
-   nw        = filehead[:nw]
-   eqpar     = filehead[:eqpar]
-   variables = filehead[:variables]
+   ndim      = filehead.ndim
+   headline  = filehead.headline
+   neqpar    = filehead.neqpar
+   nw        = filehead.nw
+   eqpar     = filehead.eqpar
+   variables = filehead.variables
 
    mu0SI = 4π*1e-7      # H/m
    cSI   = 2.9978e8       # speed of light, [m/s]
@@ -811,31 +763,27 @@ function setunits( filehead::Dict, type::AbstractString; distunit=1.0,
 end
 
 """
-	showhead(file, ifile, filehead)
+	showhead(file, filehead)
 
 Displaying file header information.
 """
-function showhead(file::FileList, ifile::Int, head::Dict)
-   println("----------------------")
-   println("ifile     = $(ifile)")
-   println("filename  = $(file.name)")
-   println("filetype  = $(file.type)")
-   println("headline  = $(head[:headline])")
-   println("it        = $(head[:it])")
-   println("time      = $(head[:time])")
-   println("gencoord  = $(head[:gencoord])")
-   println("ndim      = $(head[:ndim])")
-   println("neqpar    = $(head[:neqpar])")
-   println("nw        = $(head[:nw])")
-   println("nx        = $(head[:nx])")
-   println("----------------------")
+function showhead(file::FileList, head::NamedTuple)
+   @info "filename  = $(file.name)"
+   @info "filetype  = $(file.type)"
+   @info "headline  = $(head.headline)"
+   @info "it        = $(head.it)"
+   @info "time      = $(head.time)"
+   @info "gencoord  = $(head.gencoord)"
+   @info "ndim      = $(head.ndim)"
+   @info "neqpar    = $(head.neqpar)"
+   @info "nw        = $(head.nw)"
+   @info "nx        = $(head.nx)"
 
    if head[:neqpar] > 0
-      println("parameters = $(head[:eqpar])")
-      println("coord names= $(head[:variables][1:head[:ndim]])")
-      println("var   names= $(head[:variables][head[:ndim]+1:head[:ndim]+head[:nw]])")
-      println("param names= $(head[:variables][head[:ndim]+head[:nw]+1:end])")
-      println("=======================")
+      @info "parameters = $(head.eqpar)"
+      @info "coord names= $(head.variables[1:head.ndim])"
+      @info "var   names= $(head.variables[head.ndim+1:head.ndim+head.nw])"
+      @info "param names= $(head.variables[head.ndim+head.nw+1:end])"
    end
 end
 
@@ -847,38 +795,38 @@ in VTK, the connectivity sequence is different from Tecplot.
 """
 function convertVTK(head, data, connectivity, filename="3DBATSRUS")
 
-   nVar = length(head[:variables])
+   nVar = length(head.variables)
 
-   points = @view data[1:head[:ndim],:]
-   cells = Vector{MeshCell{Array{Int32,1}}}(undef,head[:nCell])
-   if head[:ndim] == 3
+   points = @view data[1:head.ndim,:]
+   cells = Vector{MeshCell{Array{Int32,1}}}(undef,head.nCell)
+   if head.ndim == 3
       # PLT to VTK index_ = [1 2 4 3 5 6 8 7]
       for i = 1:2
          connectivity = swaprows!(connectivity, 4*i-1, 4*i)
       end
-      @inbounds for i = 1:head[:nCell]
+      @inbounds for i = 1:head.nCell
          cells[i] = MeshCell(VTKCellTypes.VTK_VOXEL, connectivity[:,i])
       end
    elseif head[:ndim] == 2
-      @inbounds for i = 1:head[:nCell]
+      @inbounds for i = 1:head.nCell
          cells[i] = MeshCell(VTKCellTypes.VTK_PIXEL, connectivity[:,i])
       end
    end
 
    vtkfile = vtk_grid(filename, points, cells)
 
-   for ivar = head[:ndim]+1:nVar
-      if occursin("_x",head[:variables][ivar]) # vector
+   for ivar = head.ndim+1:nVar
+      if occursin("_x",head.variables[ivar]) # vector
          var1 = @view data[ivar,:]
          var2 = @view data[ivar+1,:]
          var3 = @view data[ivar+2,:]
-         namevar = replace(head[:variables][ivar], "_x"=>"")
+         namevar = replace(head.variables[ivar], "_x"=>"")
          vtk_point_data(vtkfile, (var1, var2, var3), namevar)
-      elseif occursin(r"(_y|_z)",head[:variables][ivar])
+      elseif occursin(r"(_y|_z)",head.variables[ivar])
          continue
       else
          var = @view data[ivar,:]
-         vtk_point_data(vtkfile, var, head[:variables][ivar])
+         vtk_point_data(vtkfile, var, head.variables[ivar])
       end
    end
 

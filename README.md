@@ -44,7 +44,7 @@ After the installation, in the Python repl:
 from julia import SWMF
 dir = 'test'
 filename = '1d__raw_2_t25.60000_n00000258.out'
-head, data, filelist = SWMF.readdata(filename, dir=dir)
+data = SWMF.readdata(filename, dir=dir)
 ```
 There you have it! Enjoy!
 
@@ -54,11 +54,12 @@ Data loading speed of a 2.4GB 3D binary file on Macbook Pro with quad core 2.2 G
 
 |        | tmin [s] | tmax [s] | tmean [s] |
 |--------|--------|--------|-----------|
-| Julia  | 1.44   | 3.77   | 2.07      |
+| Julia  | 1.44   | 3.77   | 1.55      |
 | Python | 1.33   | 1.35   | 1.34      |
 | IDL    | 6.00   | 6.18   | 6.08      |
 | MATLAB | 6.67   | 16.02  | 10.60     |
 
+The Julia, IDL, and MATLAB version all shares the same kernel design. The timings are obtained for Julia v1.3.1, Python 3.7.6 + Numpy 1.18.1, IDL 8.5, and MATLAB R2018b.
 For dynamic languages, the first time when function gets executed is usually also the slowest. Currently [spacepy](https://github.com/spacepy/spacepy) performs slightly better because of the well-optimized numpy library in C.
 
 ## Author

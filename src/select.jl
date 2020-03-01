@@ -2,16 +2,16 @@ export get_vars, cutdata, subvolume, subsurface
 
 
 """
-	cutdata(data, head, var; plotrange=[-Inf,Inf,-Inf,Inf], cut=' ',
+	cutdata(data, var; plotrange=[-Inf,Inf,-Inf,Inf], cut=' ',
 		cutPlaneIndex=1)
 
 Get 2D plane cut data of 3D box data.
 """
-function cutdata(data::Data, head::Dict, var::AbstractString;
+function cutdata(data::Data, var::AbstractString;
    plotrange=[-Inf,Inf,-Inf,Inf], cut=' ', cutPlaneIndex=1)
 
-   x,w = data.x, data.w
-   VarIndex_ = findfirst(x->x==lowercase(var), lowercase.(head[:wnames]))
+   x, w = data.x, data.w
+   VarIndex_ = findfirst(x->x==lowercase(var), lowercase.(data.head.wnames))
    isempty(VarIndex_) && error("$(var) not found in header variables!")
 
    X = @view x[:,:,:,1]
@@ -220,10 +220,10 @@ function subdata(data, xind::Vector{Int}, yind::Vector{Int}, zind::Vector{Int},
 end
 
 
-function get_var(data::Data, head::Dict, var::AbstractString)
-   VarIndex_ = findfirst(x->x==var,head[:wnames])
+function get_var(data::Data, var::AbstractString)
+   VarIndex_ = findfirst(x->x==var,data.head.wnames)
 
-   ndim = head[:ndim]
+   ndim = head.ndim
    if ndim == 1
       w = data.w[:,VarIndex_]
    elseif ndim == 2
@@ -234,11 +234,11 @@ function get_var(data::Data, head::Dict, var::AbstractString)
    w
 end
 
-function get_vars(data::Data, head::Dict, Names::Vector{AbstractString})
+function get_vars(data::Data, Names::Vector{AbstractString})
 
    dict = Dict()
    for name in Names
-      dict[name] = get_var(data, head, name)
+      dict[name] = get_var(data, name)
    end
 
    Vars(dict)

@@ -3,20 +3,22 @@ module SWMF
 #
 # Hongyang Zhou, hyzhou@umich.edu
 
-using Glob, Printf, WriteVTK
+using Printf, WriteVTK
 
-export Data, FileList, Vars
-
-struct Data{T}
-   x::Array{T}
-   w::Array{T}
-end
+export Data, Vars
 
 struct FileList
    name::String
    type::String
    bytes::Int64
    npictinfiles::Int64
+end
+
+struct Data{T<:AbstractFloat}
+   head::NamedTuple
+   x::Array{T}
+   w::Array{T}
+   list::FileList
 end
 
 struct Vars

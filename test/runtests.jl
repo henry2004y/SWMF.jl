@@ -8,31 +8,30 @@ using SWMF, Test
 
 @testset "reading 1D ascii" begin
    filename = "1d__raw_2_t25.60000_n00000258.out"
-   head, data, list = readdata(filename, verbose=true)
-   @test isa(head[1], Dict)
-   @test isa(data[1], Data)
-   @test isa(list[1], FileList)
+   data = readdata(filename, verbose=true)
+   @test isa(data.head, NamedTuple)
+   @test extrema(data.x) == (-127.5, 127.5)
+   @test extrema(data.w) == (-0.79960780498, 1.9394335293)
 end
 
 @testset "reading 2D structured binary" begin
    filename = "z=0_raw_1_t25.60000_n00000258.out"
-   head, data, list = readdata(filename)
-   @test isa(head[1], Dict)
-   @test isa(data[1], Data)
-   @test isa(list[1], FileList)
+   data = readdata(filename)
+   @test data.head.time == 25.6f0
+   @test extrema(data.x) == (-127.5f0, 127.5f0)
+   @test extrema(data.w) == (-0.79985905f0, 1.9399388f0)
 end
 
 @testset "reading 2D unstructured binary" begin
    #filename = "z=0_raw_1_t25.60000_n00000258.out"
-   #head, data, list = readdata(filename)
+   #data = readdata(filename)
 end
 
 @testset "reading 3D structured binary" begin
    filename = "3d_raw.out"
-   head, data, list = readdata(filename)
+   data = readdata(filename)
    plotrange = [-50.0, 50.0, -0.5, 0.5]
-   X, Z, p = cutdata(data[1],head[1],"p",
-      cut='y', cutPlaneIndex=1, plotrange=plotrange)
+   X, Z, p = cutdata(data, "p", cut='y', cutPlaneIndex=1, plotrange=plotrange)
    @test p[1] ≈ 0.560976f0
    @test p[2] ≈ 0.53704995f0
 end

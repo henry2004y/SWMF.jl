@@ -11,15 +11,7 @@ In principle, I could also try some multi-block (VTM) type for data conversion.
 - This is the first time I use Julia for reading general ascii/binary files. It was a pain at first due to the lack of examples and documents using any basic function like read/read!, but fortunately I figured them out myself. One trick in reading binary array data is the usage of view, or subarrays, in Julia. In order to achieve that, I have to implement my own `read!` function in addition to the base ones.
 - Tecplot and VTK unstructured data formats have the same connectivity ordering for hexahedron, but different ordering for voxel (in VTK). A function `swaprows` is implemented to switch the orderings.
 - Because of the embarrassing parallelism nature of postprocessing, it is quite easy to take advantage of parallel approaches to process the data.
-- The built-in streamline function of Matplotlib is not proper for scientifically visualizing field information. The solution is to trace field lines with ODEs and plot the line series, similar to what has been done by [Spacepy](https://github.com/spacepy/spacepy/blob/master/spacepy/pybats/trace2d.py).
 
-## Streamline Tracing
-
-2D streamline tracing is almost finished. 3D streamline tracing is on the way. I need an adaptive step control integration scheme like rk45.
-
-## Particle Tracing
-
-I have a plan of incorporating particle tracing into this module. WIP
 
 ## Support for more complicated grid structures
 
@@ -37,15 +29,12 @@ Checkout [BinaryBuilder](https://juliapackaging.github.io/BinaryBuilder.jl/lates
 
 ## Issues
 
+I am enlightened by the way spacepy handles files. Instead of a separate header and data array, it may be better to build a more contained struct.
+Also, the header could use `NamedTuple` instead of `Dict`.
+
+And actually, by far there is no single use case where I need to read multiple files together. If you want to do so, just call the function twice.
+
 Before v0.5.1, `readdata` function in Matlab for large data is 2 times faster than that in Julia. The reason is simply using `read` or `unsafe_read` in the lower level. The latter one is much faster. After the fix, Julia version performs 5 times faster than the Matlab version in reading binary data.
-
-At first I forgot to export the Data struct, so everytime when I modified the code and rerun plotdata, it will shout error at me, saying no type was found for the input type.
-
-Precise control of colorbar position in Matplotlib is not an easy task. `axis(“scaled”)` or `axis(“equal”)` will cause issue with the present layout, such as overlapping, cutoff, or too much white spaces. Things are improving, but it takes time. See the scripts in the space folder for some examples of controlling the layouts.
-
-The current support of animation in Matplotlib is not good enough, especially for interactive plotting and scanning through multiple snapshots. The color range is constantly giving me headaches.
-
-The current wrapper over Matplotlib makes it difficult to modify the plots afterwards, which especially causes problems when dealing with time series snapshots. The colorbar is so hard to fix. The solution is, instead of using `level`, provide a range of points.
 
 In the roadmap of PyCall 2.0, there will direct support for accessing Julia objects. I hesitate to do it myself, so let's just wait for it to come.
 
@@ -57,19 +46,6 @@ Right now the derived quantity plots are not supported. In order to achieve this
 
 The first one is achieved by a trick I found on discourse, which basically identifies symbols as names to members in a struct.
 
-There is a user recipe in Plots. This is exactly what I am looking for, but more issues are coming up. I have created a new branch for this development.
-
-I want to do scattered interpolation in Julia directly, but I have not found a simple solution to do this.
-
-A direct wrapper over PyPlot function is possible, and would be more suitable for passing arguments. This may be a more plausible way to go than relying on recipes.
-
-When doing processing in batch mode on a cluster, there's usually no need to render the plots on screen. There exists such a backend for this purpose:
-```
-using PyPlot
-PyPlot.matplotlib.use("Agg")
-```
-However, notice that currently Agg backend does not support draw_artist. For example, you cannot add an anchored text to your figure.
-
 Vector naming is messed up if you are using Tecplot VTK reader. For example, "B [nT]" --> "B [nT]_X", "B [nT]_Y", "B [nT]_Z". Not a big issue, but annoying.
 
 There is a unit package in Julia [unitful](https://github.com/PainterQubits/Unitful.jl) for handling units. Take a look at that one if you really want to solve the unit problems.
@@ -80,22 +56,11 @@ I have already made a lot of mistakes by mixing the row-major and column-major c
 
 I have a new issue coming up with the interoperability with Python. I may need to split this package into pure IO and pure plotting to avoid the cross-dependency of Matplotlib. The idea is that PyPlot is only needed when I want to quickly scan through the data!
 
-As for the GUI development, GTK seems to be an ideal candidate.
-
-- [x] Fixed colorbar control through Matplotlib
-- [x] Test suite for checking validity
 - [ ] Full coverage of tests
-- [x] Cuts from 3D data visualization besides contour
-- [ ] Switch to Makie for 3D plotting and animation
-- [ ] PyJulia support for manipulating data directly in Python
-- [x] Field tracer 2D in Julia
+- [x] PyJulia support for manipulating data directly in Python
 - [x] Derived variable support
 - [x] General postprocessing script for concatenating and converting files.
-- [x] Direct wrapper over matplotlib functions to get seamless API
 - [x] Replace np.meshgrid with list comprehension
 - [ ] Find a substitution of triangulation in Julia
 - [ ] Allow dot syntax to get dictionary contents (Base.convert?)
 - [ ] Binary library support
-- [ ] Macros for quickly looking at data (GUI is the ideal solution!)
-- [ ] Magnetic field line plots from simulation
-- [ ] Particle phase space distribution plots

@@ -5,16 +5,16 @@
 - Read data
 ```
 filename = "1d_bin.out";
-head, data = readdata(filename);
-head, data = readdata(filename, verbose=true);
-head, data, list = readdata(filename, npict=1);
-head, data, list = readdata(filename, dir=".");
+data = readdata(filename);
+data = readdata(filename, verbose=true);
+data = readdata(filename, npict=1);
+data = readdata(filename, dir=".");
 ```
 
 - 3D structured spherical coordinates
 ```
 filename = "3d_structured.out";
-head, data, list = readdata(filename, verbose=false);
+data = readdata(filename, verbose=false);
 ```
 
 - log file
