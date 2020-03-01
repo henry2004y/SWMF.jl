@@ -39,8 +39,8 @@ end
 @testset "log" begin
    logfilename = "log_n000001.log"
    head, data = readlogdata(logfilename)
-   @test isa(head, Dict)
-   @test isa(data, Array)
+   @test isa(head, NamedTuple)
+   @test extrema(data) == (-0.105, 258.0) 
 end
 
 @testset "vtk" begin

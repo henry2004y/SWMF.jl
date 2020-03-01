@@ -95,7 +95,7 @@ function readlogdata( filename::AbstractString )
    close(f)
 
    head = (ndim=ndim, headline=headline, it=it, time=t, gencoord=gencoord,
-      neqpar=neqpar, nw=nw, nx=nx, variables=variables)
+      nw=nw, nx=nx, variables=variables)
 
    return head, data
 end
