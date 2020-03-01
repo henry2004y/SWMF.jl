@@ -71,36 +71,31 @@ function readdata(filenameIn::AbstractString; dir=".", npict=1, verbose=false)
    return data
 end
 
-"""
-	readlogdata(filename)
-
-Read information from log file.
-"""
+"Read information from log file."
 function readlogdata( filename::AbstractString )
-   # Is this really necessary?
-   head = Dict(:ndim => 3, :headline => "", :it => Int32(-1),
-   :time => Float32(-1.0), :gencoord => false, :neqpar => Int32(0), :nw => 1,
-   :nx => [Int32(0)], :variables => Array{String,1}(undef,1))
 
    f = open(filename, "r")
    nLine = countlines(f) - 2
    seekstart(f)
-   head[:headline]  = readline(f)
-   head[:variables] = split(readline(f))
-   head[:ndim]      = 1
-   head[:it]        = 0
-   head[:time]      = 0.0
-   head[:gencoord]  = false
-   head[:nx]        = 1
-   head[:nw]        = length(head[:variables])
+   headline  = readline(f)
+   variables = split(readline(f))
+   ndim      = 1
+   it        = 0
+   t         = 0.0
+   gencoord  = false
+   nx        = 1
+   nw        = length(variables)
 
-   data = zeros(head[:nw],nLine)
+   data = zeros(nw,nLine)
    for i = 1:nLine
       line = split(readline(f))
       data[:,i] = parse.(Float64,line)
    end
 
    close(f)
+
+   head = (ndim=ndim, headline=headline, it=it, time=t, gencoord=gencoord,
+      neqpar=neqpar, nw=nw, nx=nx, variables=variables)
 
    return head, data
 end
