@@ -25,7 +25,7 @@ head, data = readlogdata(logfilename)
 
 ## Derived variables
 ```
-v = get_vars(data[1], head[1], ["Bx", "By", "Bz"])
+v = get_vars(data, ["Bx", "By", "Bz"])
 B = @. sqrt(v.Bx^2 + v.By^2 + v.Bz^2)
 ```
 
@@ -40,7 +40,7 @@ convertVTK(head, data, connectivity, outname)
 Binary Tecplot file (`DOSAVETECBINARY=TRUE`):
 ```
 filename = "3d_bin.dat"
-head, data, connectivity  = readtecdata(filename,true)
+head, data, connectivity  = readtecdata(filename, true)
 convertVTK(head, data, connectivity, outname)
 ```
 

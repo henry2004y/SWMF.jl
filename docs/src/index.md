@@ -42,11 +42,15 @@ Depth = 1
 
 Data loading speed of a 2.4GB 3D binary file on Macbook Pro with quad core 2.2 GHz Intel i7 and 16 GB 1600 MHz DDR3:
 
-| Language |  tmin |   tmax |  tmean |
-|:-------|:-----:|:------:|:------:|
-| Julia  | 1.44s | 3.77s  |  2.07s |
-| IDL    | 6.00s | 6.18s  |  6.08s |
-| MATLAB | 6.67s | 16.02s | 10.60s |
+| Language |   tmax |  tmean |
+|:-------|:------:|:------:|
+| Julia  | 2.89s  |  1.34s |
+| Python | 1.35s  |  1.34s |
+| IDL    | 6.18s  |  6.08s |
+| MATLAB | 16.02s | 10.60s |
+
+The Julia, IDL, and MATLAB version all shares the same kernel design. The timings are obtained for Julia v1.3.1, Python 3.7.6 + Numpy 1.18.1, IDL 8.5, and MATLAB R2018b.
+For dynamic languages, the first time when function gets executed is usually also the slowest. Currently [spacepy](https://github.com/spacepy/spacepy) performs slightly better because of the well-optimized numpy library in C.
 
 ## Developers
 
