@@ -4,7 +4,7 @@
 [![](https://img.shields.io/badge/docs-latest-blue.svg)][SWMF-doc]
 [![][codecov-img]][codecov-url]
 
-The fastest SWMF data reader and converter using Julia.
+Fast SWMF data reader and converter using Julia.
 
 This is originally part of the [VisAna.jl](https://github.com/henry2004y/VisAnaJulia) package.
 Later this was moved out and became a stand-alone package.
@@ -55,10 +55,11 @@ Data loading speed of a 2.4GB 3D binary file on Macbook Pro with quad core 2.2 G
 |        | tmin [s] | tmax [s] | tmean [s] |
 |--------|--------|--------|-----------|
 | Julia  | 1.44   | 3.77   | 2.07      |
+| Python | 1.33   | 1.35   | 1.34      |
 | IDL    | 6.00   | 6.18   | 6.08      |
 | MATLAB | 6.67   | 16.02  | 10.60     |
 
-For dynamic languages, the first time when function gets executed is usually also the slowest.
+For dynamic languages, the first time when function gets executed is usually also the slowest. Currently [spacepy](https://github.com/spacepy/spacepy) performs slightly better because of the well-optimized numpy library in C.
 
 ## Author
 
