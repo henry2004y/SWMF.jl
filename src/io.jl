@@ -24,9 +24,10 @@ function readdata(filenameIn::AbstractString; dir=".", npict=1, verbose=false)
    # Check the existence of files
 	filenames = searchdir(dir, Regex(filenameIn)) # potential bugs
    if isempty(filenames)
-      @error "readdata: no matching filename was found for $(filenameIn)"
+      throw(ArgumentError(
+         "readdata: no matching filename was found for $(filenameIn)"))
    elseif length(filenames) > 1
-      @error "Ambiguous filenames!"
+      throw(ArgumentError("Ambiguous filenames!"))
    end
 
    filename = joinpath(dir, filenames[1])
@@ -36,7 +37,7 @@ function readdata(filenameIn::AbstractString; dir=".", npict=1, verbose=false)
       @info "filename=$(filelist.name)\n"*"npict=$(filelist.npictinfiles)"
 
    if any(filelist.npictinfiles - npict < 0)
-      @error "npict out of range!"
+      throw(ArgumentError("npict out of range!"))
    end
    seekstart(fileID) # Rewind to start
 
@@ -267,21 +268,21 @@ function getFileType(filename)
          elseif len == 24
             type = "binary"
          else
-            @error "Error in getFileTypes: strange unformatted file:
-               $(filename)"
+            throw(ArgumentError(
+               "Error in getFileTypes: strange unformatted file: $(filename)"))
          end
 
          if lenhead == 500
             type = uppercase(type)
          end
       end
-         # Obtain file size & number of snapshots
-         seekstart(fileID)
-         pictsize = getfilesize(fileID, type)
-         npictinfiles = floor(Int, bytes / pictsize)
-      end
+      # Obtain file size & number of snapshots
+      seekstart(fileID)
+      pictsize = getfilesize(fileID, type)
+      npictinfiles = floor(Int, bytes / pictsize)
+   end
 
-      filelist = FileList(filename, type, bytes, npictinfiles)
+   filelist = FileList(filename, type, bytes, npictinfiles)
 
    return filelist, fileID, pictsize
 end
@@ -359,7 +360,7 @@ function getfilehead(fileID::IOStream, type::String)
 	# Produce a wnames from the last file
    wnames = variables[ndim+1:ndim+nw]
 
-	head = (ndim=ndim, headline=headline, it=it, time=t, gencoord=gencoord,
+   head = (ndim=ndim, headline=headline, it=it, time=t, gencoord=gencoord,
 		neqpar=neqpar, nw=nw, nx=nx, eqpar=eqpar, variables=variables,
 		wnames=wnames)
 end
@@ -419,7 +420,7 @@ function getfilesize(fileID::IOStream, type::String)
          skip(fileID, 2*tag) # skip record end/start tags.
       end
       read(fileID, lenstr)
-      skip(fileID, 2*tag)
+      skip(fileID, tag)
    end
 
    # Header length
@@ -428,15 +429,14 @@ function getfilesize(fileID::IOStream, type::String)
 
    # Calculate the snapshot size = header + data + recordmarks
    nxs = prod(nx)
-
    if ftype == "log"
       pictsize = 1
    elseif ftype == "ascii"
       pictsize = headlen + (18*(ndim+nw)+1)*nxs
-   elseif ftype == "binary"
-      pictsize = headlen + 8*(1+nw) + 8*(ndim+nw)*nxs
    elseif ftype == "real4"
       pictsize = headlen + 8*(1+nw) + 4*(ndim+nw)*nxs
+   elseif ftype == "binary"
+      pictsize = headlen + 8*(1+nw) + 8*(ndim+nw)*nxs
    end
 
    return pictsize
@@ -660,7 +660,7 @@ function setunits( filehead::NamedTuple, type::AbstractString; distunit=1.0,
       jSI   = 1e-6            # muA/m^2
       c0    = cSI/uSI         # speed of light in velocity units
    else
-      @error "invalid typeunit=$(typeunit)"
+      throw(ArgumentError("invalid typeunit=$(typeunit)"))
    end
 
    # Overwrite values if given by eqpar
