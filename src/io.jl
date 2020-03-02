@@ -36,7 +36,7 @@ function readdata(filenameIn::AbstractString; dir=".", npict=1, verbose=false)
       @info "filename=$(filelist.name)\n"*"npict=$(filelist.npictinfiles)"
 
    if any(filelist.npictinfiles - npict < 0)
-      @error "file $(ifile): npict out of range!"
+      @error "npict out of range!"
    end
    seekstart(fileID) # Rewind to start
 
