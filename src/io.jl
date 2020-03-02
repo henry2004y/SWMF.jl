@@ -2,6 +2,8 @@
 
 export readdata, readlogdata, readtecdata, convertVTK
 
+const tag = 4 # Fortran record tag
+
 searchdir(path,key) = filter(x->occursin(key,x), readdir(path))
 
 """
@@ -50,7 +52,7 @@ function readdata(filenameIn::AbstractString; dir=".", npict=1, verbose=false)
       x, w = allocateBuffer(filehead, Float64) # why Float64?
       getpictascii!(x, w, fileID, filehead)
    else
-      skip(fileID,4) # skip record start tag.
+      skip(fileID, tag) # skip record start tag.
       fileType == "real4" ? T = Float32 : T = Float64
       x, w = allocateBuffer(filehead, T)
       getpictreal!(x, w, fileID, filehead, T)
@@ -258,7 +260,7 @@ function getFileType(filename)
       else
          # The length of the 2nd line decides between real4 & real8
          # since it contains the time; which is real*8 | real*4
-         skip(fileID, lenhead+4)
+         skip(fileID, lenhead+tag)
          len = read(fileID, Int32)
          if len == 20
             type = "real4"
@@ -321,9 +323,9 @@ function getfilehead(fileID::IOStream, type::String)
       end
       varname = readline(fileID)
    elseif ftype ∈ ["real4","binary"]
-      skip(fileID,4) # skip record start tag.
+      skip(fileID, tag) # skip record start tag.
       headline = String(read(fileID, lenstr))
-      skip(fileID,8) # skip record end/start tags.
+      skip(fileID, 2*tag) # skip record end/start tags.
       it = read(fileID, Int32)
       t = read(fileID, Float32)
       ndim = read(fileID, Int32)
@@ -331,17 +333,17 @@ function getfilehead(fileID::IOStream, type::String)
       ndim = abs(ndim)
       neqpar = read(fileID, Int32)
       nw = read(fileID, Int32)
-      skip(fileID,8) # skip record end/start tags.
+      skip(fileID, 2*tag) # skip record end/start tags.
       nx = zeros(Int32, ndim)
       read!(fileID, nx)
-      skip(fileID,8) # skip record end/start tags.
+      skip(fileID, 2*tag) # skip record end/start tags.
       if neqpar > 0
          eqpar = zeros(Float32,neqpar)
          read!(fileID, eqpar)
-         skip(fileID,8) # skip record end/start tags.
+         skip(fileID, 2*tag) # skip record end/start tags.
       end
       varname = String(read(fileID, lenstr))
-      skip(fileID,4) # skip record end tag.
+      skip(fileID, tag) # skip record end tag.
    end
 
    # Header length
@@ -399,25 +401,25 @@ function getfilesize(fileID::IOStream, type::String)
       neqpar > 0 && skipline(fileID)
       skipline(fileID)
    elseif ftype ∈ ["real4","binary"]
-      skip(fileID,4)
-      read(fileID,lenstr)
-      skip(fileID,8)
-      read(fileID,Int32)
-      read(fileID,Float32)
-      ndim = abs(read(fileID,Int32))
-      tmp = read(fileID,Int32)
-      nw = read(fileID,Int32)
-      skip(fileID,8)
+      skip(fileID, tag)
+      read(fileID, lenstr)
+      skip(fileID, 2*tag)
+      read(fileID, Int32)
+      read(fileID, Float32)
+      ndim = abs(read(fileID, Int32))
+      tmp = read(fileID, Int32)
+      nw = read(fileID, Int32)
+      skip(fileID, 2*tag)
       nx = zeros(Int32,ndim)
-      read!(fileID,nx)
-      skip(fileID,8)
+      read!(fileID, nx)
+      skip(fileID, 2*tag)
       if tmp > 0
          tmp2 = zeros(Float32,tmp)
          read!(fileID,tmp2)
-         skip(fileID,8) # skip record end/start tags.
+         skip(fileID, 2*tag) # skip record end/start tags.
       end
       read(fileID, lenstr)
-      skip(fileID,4)
+      skip(fileID, 2*tag)
    end
 
    # Header length
