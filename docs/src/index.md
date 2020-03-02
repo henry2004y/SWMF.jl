@@ -44,7 +44,7 @@ Data loading speed of a 2.4GB 3D binary file on Macbook Pro with quad core 2.2 G
 
 | Language |   tmax |  tmean |
 |:-------|:------:|:------:|
-| Julia  | 2.89s  |  1.34s |
+| Julia  | 2.73s  |  1.32s |
 | Python | 1.35s  |  1.34s |
 | IDL    | 6.18s  |  6.08s |
 | MATLAB | 16.02s | 10.60s |

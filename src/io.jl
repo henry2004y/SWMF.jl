@@ -7,7 +7,7 @@ searchdir(path,key) = filter(x->occursin(key,x), readdir(path))
 """
 	readdata(filenameIn, (, dir=".", npict=1, verbose=false))
 
-Read data from BATSRUS output files. Stores the npict-th snapshot from an ascii
+Read data from BATSRUS output files. Stores the `npict` snapshot from an ascii
 or binary data file into the coordinates `x` and data `w` arrays.
 Filenames can be provided with wildcards.
 
@@ -27,12 +27,11 @@ function readdata(filenameIn::AbstractString; dir=".", npict=1, verbose=false)
       @error "Ambiguous filenames!"
    end
 
-	filename = joinpath(dir, filenames[1])
+   filename = joinpath(dir, filenames[1])
    filelist, fileID, pictsize = getFileType(filename)
 
-   if verbose
+   verbose &&
       @info "filename=$(filelist.name)\n"*"npict=$(filelist.npictinfiles)"
-   end
 
    if any(filelist.npictinfiles - npict < 0)
       @error "file $(ifile): npict out of range!"
@@ -40,7 +39,6 @@ function readdata(filenameIn::AbstractString; dir=".", npict=1, verbose=false)
    seekstart(fileID) # Rewind to start
 
    ## Read data from files
-
    # Skip npict-1 snapshots (because we only want npict snapshot)
    skip(fileID, pictsize*(npict-1))
 
@@ -49,13 +47,13 @@ function readdata(filenameIn::AbstractString; dir=".", npict=1, verbose=false)
    # Read data
    fileType = lowercase(filelist.type)
    if fileType == "ascii"
-      x,w = getpictascii(fileID, filehead)
-   elseif fileType == "binary"
-      x,w = getpictreal(fileID, filehead, Float64)
-   elseif fileType == "real4"
-      x,w = getpictreal(fileID, filehead, Float32)
+      x, w = allocateBuffer(filehead, Float64) # why Float64?
+      getpictascii!(x, w, fileID, filehead)
    else
-      @error "get_pict: unknown filetype: $(filelist[ifile].type)"
+      skip(fileID,4) # skip record start tag.
+      fileType == "real4" ? T = Float32 : T = Float64
+      x, w = allocateBuffer(filehead, T)
+      getpictreal!(x, w, fileID, filehead, T)
    end
 
    #setunits(filehead,"")
@@ -364,6 +362,14 @@ function getfilehead(fileID::IOStream, type::String)
 		wnames=wnames)
 end
 
+function skipline(s::IO)
+    while !eof(s)
+        c = read(s, Char)
+        c == '\n' && break
+    end
+    return nothing
+end
+
 """ Return the size of file. """
 function getfilesize(fileID::IOStream, type::String)
 
@@ -382,21 +388,16 @@ function getfilesize(fileID::IOStream, type::String)
    pointer0 = position(fileID)
 
    if ftype == "ascii"
-      headline = readline(fileID)
+      skipline(fileID)
       line = readline(fileID)
       line = split(line)
-      it = parse(Int,line[1])
-      time = parse(Float64,line[2])
-      ndim = parse(Int8,line[3])
       neqpar = parse(Int32,line[4])
       nw = parse(Int8,line[5])
       gencoord = ndim < 0
       ndim = abs(ndim)
       nx = parse.(Int64, split(readline(fileID)))
-      if neqpar > 0
-         eqpar = parse.(Float64, split(readline(fileID)))
-      end
-      varname = readline(fileID)
+      neqpar > 0 && skipline(fileID)
+      skipline(fileID)
    elseif ftype ∈ ["real4","binary"]
       skip(fileID,4)
       read(fileID,lenstr)
@@ -452,67 +453,64 @@ function read!(s::IO, a::AbstractArray{T}) where T
    return a
 end
 
+"Create buffer for x and w."
+function allocateBuffer(filehead::NamedTuple, T::DataType)
 
-"""
-	getpictascii(fileID, filehead)
+   if filehead.ndim == 1
+      n1 = filehead.nx[1]
+      x  = Array{T,2}(undef,n1,filehead.ndim)
+      w  = Array{T,2}(undef,n1,filehead.nw)
+   elseif filehead.ndim == 2
+      n1, n2 = filehead.nx
+      x  = Array{T,3}(undef,n1,n2,filehead.ndim)
+      w  = Array{T,3}(undef,n1,n2,filehead.nw)
+   elseif filehead.ndim == 3
+      n1, n2, n3 = filehead.nx
+      x  = Array{T,4}(undef,n1,n2,n3,filehead.ndim)
+      w  = Array{T,4}(undef,n1,n2,n3,filehead.nw)
+   end
 
-Read ascii format data.
-"""
-function getpictascii(fileID::IOStream, filehead::NamedTuple)
+   return x, w
+end
+
+"Read ascii format data."
+function getpictascii!(x, w, fileID::IOStream, filehead::NamedTuple)
 
    ndim = filehead.ndim
-   nw   = filehead.nw
 
    # Read coordinates & values row by row
    if ndim == 1 # 1D
-      n1 = filehead.nx[1]
-      x  = Array{Float64,2}(undef,n1,ndim)
-      w  = Array{Float64,2}(undef,n1,nw)
-      for ix = 1:n1
+      for ix = 1:filehead.nx[1]
          temp = parse.(Float64, split(readline(fileID)))
          x[ix,:] .= temp[1]
          w[ix,:] .= temp[2:end]
       end
    elseif ndim == 2 # 2D
-      n1, n2 = filehead.nx
-      x  = Array{Float64,3}(undef,n1,n2,ndim)
-      w  = Array{Float64,3}(undef,n1,n2,nw)
-      for i = 1:n1, j = 1:n2
+      for i = 1:filehead.nx[1], j = 1:filehead.nx[2]
          temp = parse.(Float64, split(readline(fileID)))
          x[i,j,:] .= temp[1:2]
          w[i,j,:] .= temp[3:end]
       end
    elseif ndim == 3 # 3D
-      n1, n2, n3 = filehead.nx
-      x  = Array{Float64,4}(undef,n1,n2,n3,ndim)
-      w  = Array{Float64,4}(undef,n1,n2,n3,nw)
-      for i = 1:n1, j = 1:n2, k = 1:n3
+      for i = 1:filehead.nx[1], j = 1:filehead.nx[2], k = 1:filehead.nx[3]
          temp = parse.(Float64, split(readline(fileID)))
          x[i,j,k,:] .= temp[1:3]
          w[i,j,k,:] .= temp[4:end]
       end
    end
 
-   return x, w
+   return nothing
 end
 
 
-"""
-	getpictreal(fileID, filehead)
-
-Read real4/read8 format data.
-"""
-function getpictreal(fileID::IOStream, filehead::NamedTuple, T::DataType)
+"Read binary format data."
+function getpictreal!(x, w, fileID::IOStream, filehead::NamedTuple, T::DataType)
 
    ndim = filehead.ndim
    nw   = filehead.nw
 
    # Read coordinates & values
    if ndim == 1 # 1D
-      n1 = filehead.nx[1]
-      x  = Array{T,2}(undef,n1,ndim)
-      w  = Array{T,2}(undef,n1,nw)
-      skip(fileID,4) # skip record start tag.
       read!(fileID,x)
       skip(fileID,8) # skip record end/start tags.
       for iw = 1:nw
@@ -520,10 +518,6 @@ function getpictreal(fileID::IOStream, filehead::NamedTuple, T::DataType)
          skip(fileID,8) # skip record end/start tags.
       end
    elseif ndim == 2 # 2D
-      n1, n2 = filehead.nx
-      x  = Array{T,3}(undef,n1,n2,ndim)
-      w  = Array{T,3}(undef,n1,n2,nw)
-      skip(fileID,4) # skip record start tag.
       read!(fileID,x)
       skip(fileID,8) # skip record end/start tags.
       for iw = 1:nw
@@ -531,10 +525,6 @@ function getpictreal(fileID::IOStream, filehead::NamedTuple, T::DataType)
          skip(fileID,8) # skip record end/start tags.
       end
    elseif ndim == 3 # 3D
-      n1, n2, n3 = filehead.nx
-      x  = Array{T,4}(undef,n1,n2,n3,ndim)
-      w  = Array{T,4}(undef,n1,n2,n3,nw)
-      skip(fileID,4) # skip record start tag.
       read!(fileID,x)
       skip(fileID,8) # skip record end/start tags.
       for iw = 1:nw
@@ -543,7 +533,7 @@ function getpictreal(fileID::IOStream, filehead::NamedTuple, T::DataType)
       end
    end
 
-   return x,w
+   return nothing
 end
 
 """
