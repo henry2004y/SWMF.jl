@@ -845,7 +845,7 @@ function convertBox2VTK(filename::AbstractString; dir=".", gridType=1,
                var1 = @view data.w[:,:,:,ivar]
                var2 = @view data.w[:,:,:,ivar+1]
                var3 = @view data.w[:,:,:,ivar+2]
-               namevar = head[1][:wnames][ivar][1:end-1]
+               namevar = data.head.wnames[ivar][1:end-1]
                vtk_point_data(vtk, (var1, var2, var3), namevar)
             elseif data.head.wnames[ivar][end] in ('y','z')
                continue
