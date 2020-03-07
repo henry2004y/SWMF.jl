@@ -1,6 +1,6 @@
 # All the IO related APIs.
 
-export readdata, readlogdata, readtecdata, convertVTK
+export readdata, readlogdata, readtecdata, convertVTK, convertBox2VTK
 
 searchdir(path,key) = filter(x->occursin(key,x), readdir(path))
 
@@ -20,7 +20,7 @@ data = readdata(filename)
 function readdata(filenameIn::AbstractString; dir=".", npict=1, verbose=false)
 
    # Check the existence of files
-	filenames = searchdir(dir, Regex(filenameIn)) # potential bugs
+   filenames = searchdir(dir, Regex(filenameIn)) # potential bugs
    if isempty(filenames)
       @error "readdata: no matching filename was found for $(filenameIn)"
    elseif length(filenames) > 1
@@ -773,7 +773,7 @@ function showhead(file::FileList, head::NamedTuple)
 end
 
 """
-	convertVTK(head, data, connectivity, filename)
+	convertVTK(head, data, connectivity, filename="3DBATSRUS")
 
 Convert 3D unstructured Tecplot data to VTK. Note that if using voxel type data
 in VTK, the connectivity sequence is different from Tecplot.
@@ -817,6 +817,67 @@ function convertVTK(head, data, connectivity, filename="3DBATSRUS")
 
    outfiles = vtk_save(vtkfile)
 end
+
+"""
+	convertBoxVTK(filename; dir=".", gridType=1, verbose=false)
+
+Convert 3D structured Tecplot data to VTK.
+"""
+function convertBox2VTK(filename::AbstractString; dir=".", gridType=1,
+   verbose=false)
+
+   data = readdata(filename, dir=dir)
+
+   nVar = length(data.head.wnames)
+
+   outname = filename[1:end-4]
+
+   if gridType == 1 # rectilinear grid
+      x = @view data.x[:,1,1,1]
+      y = @view data.x[1,:,1,2]
+      z = @view data.x[1,1,:,3]
+
+      outfiles = vtk_grid(dir*outname, x,y,z) do vtk
+         for ivar = 1:nVar
+            if data.head.wnames[ivar][end] == 'x' # vector
+               var1 = @view data.w[:,:,:,ivar]
+               var2 = @view data.w[:,:,:,ivar+1]
+               var3 = @view data.w[:,:,:,ivar+2]
+               namevar = head[1][:wnames][ivar][1:end-1]
+               vtk_point_data(vtk, (var1, var2, var3), namevar)
+            elseif data.head.wnames[ivar][end] in ('y','z')
+               continue
+            else
+               var = @view data.w[:,:,:,ivar]
+               vtk_point_data(vtk, var, data.head.wnames[ivar])
+            end
+         end
+      end
+   elseif gridType == 2 # structured grid
+      xyz = permutedims(data.x, [4,1,2,3])
+
+      outfiles = vtk_grid(dir*outname, xyz) do vtk
+         for ivar = 1:nVar
+            if data.head.wnames[ivar][end] == 'x' # vector
+               var1 = @view data.w[:,:,:,ivar]
+               var2 = @view data.w[:,:,:,ivar+1]
+               var3 = @view data.w[:,:,:,ivar+2]
+               namevar = data.head.wnames[ivar][1:end-1]
+               vtk_point_data(vtk, (var1, var2, var3), namevar)
+            elseif data.head.wnames[ivar][end] in ('y','z')
+               continue
+            else
+               var = @view data.w[:,:,:,ivar]
+               vtk_point_data(vtk, var, data.head.wnames[ivar])
+            end
+         end
+      end
+   elseif gridType == 3 # unstructured grid, not finished
+      @error "Not implemented yet!"
+   end
+   verbose && @info "$(filename) finished conversion."
+end
+
 
 function swaprows!(X, i, j)
    m, n = size(X)
