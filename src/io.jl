@@ -2,6 +2,8 @@
 
 export readdata, readlogdata, readtecdata, convertVTK, convertBox2VTK
 
+const tag = 4 # Fortran record tag
+
 searchdir(path,key) = filter(x->occursin(key,x), readdir(path))
 
 """
@@ -22,9 +24,10 @@ function readdata(filenameIn::AbstractString; dir=".", npict=1, verbose=false)
    # Check the existence of files
    filenames = searchdir(dir, Regex(filenameIn)) # potential bugs
    if isempty(filenames)
-      @error "readdata: no matching filename was found for $(filenameIn)"
+      throw(ArgumentError(
+         "readdata: no matching filename was found for $(filenameIn)"))
    elseif length(filenames) > 1
-      @error "Ambiguous filenames!"
+      throw(ArgumentError("Ambiguous filenames!"))
    end
 
    filename = joinpath(dir, filenames[1])
@@ -34,7 +37,7 @@ function readdata(filenameIn::AbstractString; dir=".", npict=1, verbose=false)
       @info "filename=$(filelist.name)\n"*"npict=$(filelist.npictinfiles)"
 
    if any(filelist.npictinfiles - npict < 0)
-      @error "file $(ifile): npict out of range!"
+      throw(ArgumentError("npict out of range!"))
    end
    seekstart(fileID) # Rewind to start
 
@@ -50,7 +53,7 @@ function readdata(filenameIn::AbstractString; dir=".", npict=1, verbose=false)
       x, w = allocateBuffer(filehead, Float64) # why Float64?
       getpictascii!(x, w, fileID, filehead)
    else
-      skip(fileID,4) # skip record start tag.
+      skip(fileID, tag) # skip record start tag.
       fileType == "real4" ? T = Float32 : T = Float64
       x, w = allocateBuffer(filehead, T)
       getpictreal!(x, w, fileID, filehead, T)
@@ -258,28 +261,28 @@ function getFileType(filename)
       else
          # The length of the 2nd line decides between real4 & real8
          # since it contains the time; which is real*8 | real*4
-         skip(fileID, lenhead+4)
+         skip(fileID, lenhead+tag)
          len = read(fileID, Int32)
          if len == 20
             type = "real4"
          elseif len == 24
             type = "binary"
          else
-            @error "Error in getFileTypes: strange unformatted file:
-               $(filename)"
+            throw(ArgumentError(
+               "Error in getFileTypes: strange unformatted file: $(filename)"))
          end
 
          if lenhead == 500
             type = uppercase(type)
          end
       end
-         # Obtain file size & number of snapshots
-         seekstart(fileID)
-         pictsize = getfilesize(fileID, type)
-         npictinfiles = floor(Int, bytes / pictsize)
-      end
+      # Obtain file size & number of snapshots
+      seekstart(fileID)
+      pictsize = getfilesize(fileID, type)
+      npictinfiles = floor(Int, bytes / pictsize)
+   end
 
-      filelist = FileList(filename, type, bytes, npictinfiles)
+   filelist = FileList(filename, type, bytes, npictinfiles)
 
    return filelist, fileID, pictsize
 end
@@ -321,9 +324,9 @@ function getfilehead(fileID::IOStream, type::String)
       end
       varname = readline(fileID)
    elseif ftype ∈ ["real4","binary"]
-      skip(fileID,4) # skip record start tag.
+      skip(fileID, tag) # skip record start tag.
       headline = String(read(fileID, lenstr))
-      skip(fileID,8) # skip record end/start tags.
+      skip(fileID, 2*tag) # skip record end/start tags.
       it = read(fileID, Int32)
       t = read(fileID, Float32)
       ndim = read(fileID, Int32)
@@ -331,17 +334,17 @@ function getfilehead(fileID::IOStream, type::String)
       ndim = abs(ndim)
       neqpar = read(fileID, Int32)
       nw = read(fileID, Int32)
-      skip(fileID,8) # skip record end/start tags.
+      skip(fileID, 2*tag) # skip record end/start tags.
       nx = zeros(Int32, ndim)
       read!(fileID, nx)
-      skip(fileID,8) # skip record end/start tags.
+      skip(fileID, 2*tag) # skip record end/start tags.
       if neqpar > 0
          eqpar = zeros(Float32,neqpar)
          read!(fileID, eqpar)
-         skip(fileID,8) # skip record end/start tags.
+         skip(fileID, 2*tag) # skip record end/start tags.
       end
       varname = String(read(fileID, lenstr))
-      skip(fileID,4) # skip record end tag.
+      skip(fileID, tag) # skip record end tag.
    end
 
    # Header length
@@ -357,7 +360,7 @@ function getfilehead(fileID::IOStream, type::String)
 	# Produce a wnames from the last file
    wnames = variables[ndim+1:ndim+nw]
 
-	head = (ndim=ndim, headline=headline, it=it, time=t, gencoord=gencoord,
+   head = (ndim=ndim, headline=headline, it=it, time=t, gencoord=gencoord,
 		neqpar=neqpar, nw=nw, nx=nx, eqpar=eqpar, variables=variables,
 		wnames=wnames)
 end
@@ -399,25 +402,25 @@ function getfilesize(fileID::IOStream, type::String)
       neqpar > 0 && skipline(fileID)
       skipline(fileID)
    elseif ftype ∈ ["real4","binary"]
-      skip(fileID,4)
-      read(fileID,lenstr)
-      skip(fileID,8)
-      read(fileID,Int32)
-      read(fileID,Float32)
-      ndim = abs(read(fileID,Int32))
-      tmp = read(fileID,Int32)
-      nw = read(fileID,Int32)
-      skip(fileID,8)
+      skip(fileID, tag)
+      read(fileID, lenstr)
+      skip(fileID, 2*tag)
+      read(fileID, Int32)
+      read(fileID, Float32)
+      ndim = abs(read(fileID, Int32))
+      tmp = read(fileID, Int32)
+      nw = read(fileID, Int32)
+      skip(fileID, 2*tag)
       nx = zeros(Int32,ndim)
-      read!(fileID,nx)
-      skip(fileID,8)
+      read!(fileID, nx)
+      skip(fileID, 2*tag)
       if tmp > 0
          tmp2 = zeros(Float32,tmp)
          read!(fileID,tmp2)
-         skip(fileID,8) # skip record end/start tags.
+         skip(fileID, 2*tag) # skip record end/start tags.
       end
       read(fileID, lenstr)
-      skip(fileID,4)
+      skip(fileID, tag)
    end
 
    # Header length
@@ -426,15 +429,14 @@ function getfilesize(fileID::IOStream, type::String)
 
    # Calculate the snapshot size = header + data + recordmarks
    nxs = prod(nx)
-
    if ftype == "log"
       pictsize = 1
    elseif ftype == "ascii"
       pictsize = headlen + (18*(ndim+nw)+1)*nxs
-   elseif ftype == "binary"
-      pictsize = headlen + 8*(1+nw) + 8*(ndim+nw)*nxs
    elseif ftype == "real4"
       pictsize = headlen + 8*(1+nw) + 4*(ndim+nw)*nxs
+   elseif ftype == "binary"
+      pictsize = headlen + 8*(1+nw) + 8*(ndim+nw)*nxs
    end
 
    return pictsize
@@ -658,7 +660,7 @@ function setunits( filehead::NamedTuple, type::AbstractString; distunit=1.0,
       jSI   = 1e-6            # muA/m^2
       c0    = cSI/uSI         # speed of light in velocity units
    else
-      @error "invalid typeunit=$(typeunit)"
+      throw(ArgumentError("invalid typeunit=$(typeunit)"))
    end
 
    # Overwrite values if given by eqpar
