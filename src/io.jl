@@ -839,7 +839,7 @@ function convertBox2VTK(filename::AbstractString; dir=".", gridType=1,
       y = @view data.x[1,:,1,2]
       z = @view data.x[1,1,:,3]
 
-      outfiles = vtk_grid(dir*outname, x,y,z) do vtk
+      outfiles = vtk_grid(outname, x,y,z) do vtk
          for ivar = 1:nVar
             if data.head.wnames[ivar][end] == 'x' # vector
                var1 = @view data.w[:,:,:,ivar]
@@ -858,7 +858,7 @@ function convertBox2VTK(filename::AbstractString; dir=".", gridType=1,
    elseif gridType == 2 # structured grid
       xyz = permutedims(data.x, [4,1,2,3])
 
-      outfiles = vtk_grid(dir*outname, xyz) do vtk
+      outfiles = vtk_grid(outname, xyz) do vtk
          for ivar = 1:nVar
             if data.head.wnames[ivar][end] == 'x' # vector
                var1 = @view data.w[:,:,:,ivar]
