@@ -442,18 +442,21 @@ function getfilesize(fileID::IOStream, type::String)
    return pictsize
 end
 
-# This will be supported in Julia v1.4. Remove it then.
-import Base: read!
 
-"""
-	read!(s,a)
+if VERSION < v"1.4"
+   import Base: read!
 
-Read slices of arrays using subarrays, in addition to the built-in methods.
-"""
-function read!(s::IO, a::AbstractArray{T}) where T
-   GC.@preserve a unsafe_read(s, pointer(a), sizeof(a))
-   return a
+   """
+   	read!(s,a)
+
+   Read slices of arrays using subarrays, in addition to the built-in methods.
+   """
+   function read!(s::IO, a::AbstractArray{T}) where T
+      GC.@preserve a unsafe_read(s, pointer(a), sizeof(a))
+      return a
+   end
 end
+
 
 "Create buffer for x and w."
 function allocateBuffer(filehead::NamedTuple, T::DataType)
