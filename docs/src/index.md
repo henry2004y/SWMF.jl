@@ -7,7 +7,7 @@
 
 SWMF data reader and converter in Julia.
 
-This package is the inherited from its predecessor in IDL (developed by G.Toth) and Matlab (developed by H.Zhou), and was originally part of [VisAna](https://github.com/henry2004y/VisAnaJulia).
+This package inherits the ideas and code structures from its predecessor in IDL (developed by G.Toth) and Matlab (developed by H.Zhou), and was originally part of [VisAna](https://github.com/henry2004y/VisAnaJulia).
 It can be combined with the VTK format converter [writeVTK](https://github.com/jipolanco/WriteVTK.jl) to generate files for Paraview and Tecplot.
 By default the file size will be reduced with compression level 6, but the actual compression ratio depends on the original data.
 
