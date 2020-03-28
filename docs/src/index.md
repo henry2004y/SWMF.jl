@@ -51,7 +51,7 @@ Data loading speed of a 2.4GB 3D binary file, 317MB 3D binary file, and 65KB 2D 
 
 | 317MB   | tmean [ms] |
 |:-------|:---------:|
-| Julia  | 234.5    |
+| Julia  | 180.8    |
 | Python | 179.5   |
 | IDL    | 453.5   |
 | MATLAB | 698.4  |
