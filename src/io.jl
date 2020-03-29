@@ -373,15 +373,8 @@ function skipline(s::IO)
     return nothing
 end
 
-""" Return the size of file. """
+"Return the size in bytes for one snapshot."
 function getfilesize(fileID::IOStream, type::String)
-
-   pictsize = 0
-
-   ndim = convert(Int32,1)
-   tmp  = convert(Int32,1)
-   nw   = convert(Int32,1)
-   nxs  = 0
 
    ftype = string(lowercase(type))
 
