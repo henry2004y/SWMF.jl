@@ -4,6 +4,8 @@ Demos are provided for calling Matlab/Python directly from Julia for debugging a
 
 The VTK files does not have timestep information. To allow for further time series processing in Paraview, a script `create_pvd.jl` is provided for generating the pvd container.
 
+By default the file size will be reduced with compression level 6, but the actual compression ratio depends on the original data.
+
 In principle, I could also try some multi-block (VTM) type for data conversion.
 
 ## Tricks

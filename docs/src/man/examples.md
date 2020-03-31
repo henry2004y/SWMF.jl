@@ -37,11 +37,17 @@ head, data, connectivity  = readtecdata(filename, IsBinary=false)
 convertVTK(head, data, connectivity, outname)
 ```
 
-Binary Tecplot file (`DOSAVETECBINARY=TRUE`):
+Binary Tecplot file (set `DOSAVETECBINARY=TRUE`in SWMF `PARAM.in`):
 ```
 filename = "3d_bin.dat"
 head, data, connectivity  = readtecdata(filename, true)
 convertVTK(head, data, connectivity, outname)
+```
+
+3D structured IDL file (`gridType=1` returns rectilinear `vtr` file, `gridType=2` returns structured `vts` file):
+```
+filename = "3d_structured.out"
+convertBox2VTK(filename, gridType=1)
 ```
 
 Multiple files:
