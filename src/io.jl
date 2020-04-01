@@ -387,6 +387,7 @@ function getfilesize(fileID::IOStream, type::String)
       skipline(fileID)
       line = readline(fileID)
       line = split(line)
+	  ndim = parse(Int32,line[3])
       neqpar = parse(Int32,line[4])
       nw = parse(Int8,line[5])
       gencoord = ndim < 0
