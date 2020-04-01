@@ -65,6 +65,21 @@ Data loading speed of a 2.4GB 3D binary file, 317MB 3D binary file, and 65KB 2D 
 The Julia, IDL, and MATLAB version all shares the same kernel design. The timings are obtained for Julia v1.3.1, Python 3.7.6 + Numpy 1.18.1, IDL 8.5, and MATLAB R2018b.
 For dynamic languages, the first time when function gets executed is usually also the slowest. Currently [spacepy](https://github.com/spacepy/spacepy) performs slightly better because of the well-optimized numpy library in C. For small data sizes, Julia is much faster than others.
 
+## Calling From Python
+
+In Python, you can easily take advantage of this package with the aid of [PyJulia](https://pyjulia.readthedocs.io/en/latest/).
+After the installation, in the Python repl:
+```python
+from julia import SWMF
+dir = 'test'
+filename = '1d__raw_2_t25.60000_n00000258.out'
+data = SWMF.readdata(filename, dir=dir)
+```
+There you have it! Enjoy!
+
+!!! warning "Python dependency"
+    `PyPlot` package backend may be affected by the settings of `PyJulia` dependencies. If you want to set it back properly, you need to recompile the `PyCall` package in Julia.
+
 ## Developers
 
 VisAna is developed by [Hongyang Zhou](https://github.com/henry2004y).
