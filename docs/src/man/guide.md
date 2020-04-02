@@ -8,6 +8,8 @@ By default the file size will be reduced with compression level 6, but the actua
 
 In principle, I could also try some multi-block (VTM) type for data conversion.
 
+The XML package not only provide writing into XML files, but also reading XML structures. Therefore, if you want you can create a VTK reader.
+
 ## Tricks
 
 - This is the first time I use Julia for reading general ascii/binary files. It was a pain at first due to the lack of examples and documents using any basic function like read/read!, but fortunately I figured them out myself. One trick in reading binary array data is the usage of view, or subarrays, in Julia. In order to achieve that, I have to implement my own `read!` function in addition to the base ones.
@@ -31,14 +33,14 @@ Checkout [BinaryBuilder](https://juliapackaging.github.io/BinaryBuilder.jl/lates
 
 ## Issues
 
-I am enlightened by the way spacepy handles files. Instead of a separate header and data array, it may be better to build a more contained struct.
+I am enlightened by the way SpacePy handles files. Instead of a separate header and data array, it may be better to build a more contained struct.
 Also, the header could use `NamedTuple` instead of `Dict`.
 
 And actually, by far there is no single use case where I need to read multiple files together. If you want to do so, just call the function twice.
 
 Before v0.5.1, `readdata` function in Matlab for large data is 2 times faster than that in Julia. The reason is simply using `read` or `unsafe_read` in the lower level. The latter one is much faster. After the fix, Julia version performs 5 times faster than the Matlab version in reading binary data.
 
-In the roadmap of PyCall 2.0, there will direct support for accessing Julia objects. I hesitate to do it myself, so let's just wait for it to come.
+In the roadmap of PyCall 2.0, there will direct support for accessing Julia objects in Python. I have taken advantage of this and provide a Python interface to the package.
 
 The support for a long string containing several filenames as inputs has been dropped. It should be substituted by an array of strings.
 
@@ -66,3 +68,4 @@ I have a new issue coming up with the interoperability with Python. I may need t
 - [ ] Find a substitution of triangulation in Julia
 - [ ] Allow dot syntax to get dictionary contents (Base.convert?)
 - [ ] Binary library support
+- [ ] VTK reader
