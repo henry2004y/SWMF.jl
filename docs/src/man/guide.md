@@ -1,14 +1,10 @@
 # Guide
 
+All the workflows here is not restricted to one type of model output. After being familiar with new ideas and new models, one can easily make use of existing samples and create reader of their own.
+
+## Interoperability
+
 Demos are provided for calling Matlab/Python directly from Julia for debugging and testing. This part will later be separated out for potential Python and Matlab users. Currently the plotting and interpolation needed during plotting are done in Python. For instance, the 3D scatterred interpolation is done via `Interpolate` in Scipy. Hopefully these additional dependencies will be cut down.
-
-The VTK files does not have timestep information. To allow for further time series processing in Paraview, a script `create_pvd.jl` is provided for generating the pvd container.
-
-By default the file size will be reduced with compression level 6, but the actual compression ratio depends on the original data.
-
-In principle, I could also try some multi-block (VTM) type for data conversion.
-
-The XML package not only provide writing into XML files, but also reading XML structures. Therefore, if you want you can create a VTK reader.
 
 ## Tricks
 
@@ -18,6 +14,14 @@ The XML package not only provide writing into XML files, but also reading XML st
 
 
 ## Support for more complicated grid structures
+
+The VTK files does not have timestep information. To allow for further time series processing in Paraview, a script `create_pvd.jl` is provided for generating the pvd container.
+
+By default the file size will be reduced with compression level 6, but the actual compression ratio depends on the original data.
+
+In principle, I could also try some multi-block (VTM) type for data conversion.
+
+The XML package not only provide writing into XML files, but also reading XML structures. Therefore, if you want you can create a VTK reader.
 
 For the plotting, streamline tracing and particle tracing, a common problem is the grid and related interpolation process. I am envisioning a more general approach to deal with block-based and unstructured grid to provide fundamental support for all of these.
 
