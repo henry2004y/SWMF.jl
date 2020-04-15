@@ -71,6 +71,10 @@ Given the metadata information stored in the AMR box of each grid, the refinemen
 There is a `vtkAMRDualExtractionFilter`, which constructs a dual-mesh (i.e., the mesh constructed by connecting the cell-centers) over the computational domain.
 If we can directly tell ParaView that the mesh we have is a dual-mesh, then the initial trial with multi-block data may work directly.
 
+`AMRGaussianPulseSource`
+
+See [Multi-Resolution Rendering with Overlapping AMR](https://www.paraview.org/ParaView/index.php/Multi-Resolution_Rendering_with_Overlapping_AMR) for the implementation of C++ reader in VTK.
+
 ##
 
 A real open-source project is a collaborated work not only from a bunch of people, but also a group of languages. In Julia, this can be achieved with the help of the [Package manager](https://julialang.github.io/Pkg.jl/dev/).
