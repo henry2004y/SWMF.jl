@@ -1,7 +1,7 @@
 name = "SWMF"
 uuid = "e74ebddf-6ac1-4047-a0e5-c32c99e57753"
 authors = ["hyzhou <hyzhou@umich.edu>"]
-version = "0.7.1"
+version = "0.7.2"
 
 [deps]
 Glob = "c27321d9-0574-5035-807b-f59d2c89b15c"

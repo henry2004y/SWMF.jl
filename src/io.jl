@@ -1,10 +1,18 @@
 # All the IO related APIs.
 
-export readdata, readlogdata, readtecdata, convertVTK, convertBox2VTK
+export readdata, readlogdata, readtecdata, showhead, convertVTK, convertBox2VTK
 
 const tag = 4 # Fortran record tag
 
 searchdir(path,key) = filter(x->occursin(key,x), readdir(path))
+
+function Base.show(io::IO, s::Data)
+   showhead(s)
+   println(io, "filesize = ", s.list.bytes, " bytes")
+   println(io, "snapshots = ", s.list.npictinfiles)
+   println(io, "x = ", s.x)
+   println(io, "w = ", s.w)
+end
 
 """
 	readdata(filenameIn, (, dir=".", npict=1, verbose=false))
@@ -752,22 +760,50 @@ end
 Displaying file header information.
 """
 function showhead(file::FileList, head::NamedTuple)
-   @info "filename  = $(file.name)"
-   @info "filetype  = $(file.type)"
-   @info "headline  = $(head.headline)"
-   @info "it        = $(head.it)"
-   @info "time      = $(head.time)"
-   @info "gencoord  = $(head.gencoord)"
-   @info "ndim      = $(head.ndim)"
-   @info "neqpar    = $(head.neqpar)"
-   @info "nw        = $(head.nw)"
-   @info "nx        = $(head.nx)"
+   @info "filename = $(file.name)"
+   @info "filetype = $(file.type)"
+   @info "headline = $(head.headline)"
+   @info "it       = $(head.it)"
+   @info "time     = $(head.time)"
+   @info "gencoord = $(head.gencoord)"
+   @info "ndim     = $(head.ndim)"
+   @info "neqpar   = $(head.neqpar)"
+   @info "nw       = $(head.nw)"
+   @info "nx       = $(head.nx)"
 
    if head[:neqpar] > 0
       @info "parameters = $(head.eqpar)"
       @info "coord names= $(head.variables[1:head.ndim])"
       @info "var   names= $(head.variables[head.ndim+1:head.ndim+head.nw])"
       @info "param names= $(head.variables[head.ndim+head.nw+1:end])"
+   end
+end
+
+"""
+	showhead(data)
+
+Displaying file information for the `Data` type.
+"""
+function showhead(data::Data)
+   head = data.head
+   list = data.list
+
+   println("filename = $(list.name)")
+   println("filetype = $(list.type)")
+   println("headline = $(head.headline)")
+   println("it       = $(head.it)")
+   println("time     = $(head.time)")
+   println("gencoord = $(head.gencoord)")
+   println("ndim     = $(head.ndim)")
+   println("neqpar   = $(head.neqpar)")
+   println("nw       = $(head.nw)")
+   println("nx       = $(head.nx)")
+
+   if head[:neqpar] > 0
+      println("parameters = $(head.eqpar)")
+      println("coord names= $(head.variables[1:head.ndim])")
+      println("var   names= $(head.variables[head.ndim+1:head.ndim+head.nw])")
+      println("param names= $(head.variables[head.ndim+head.nw+1:end])")
    end
 end
 
