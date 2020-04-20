@@ -1,9 +1,9 @@
-# Private types
+# Public types
 
-## Private types in module `SWMF`:
+## Public types in module `SWMF`:
 
 ```@autodocs
 Modules = [SWMF]
-Public = false
+Private = false
 Order = [:type]
 ```
