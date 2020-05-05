@@ -12,6 +12,12 @@ Demos are provided for calling Matlab/Python directly from Julia for debugging a
 - Tecplot and VTK unstructured data formats have the same connectivity ordering for hexahedron, but different ordering for voxel (in VTK). A function `swaprows` is implemented to switch the orderings.
 - Because of the embarrassing parallelism nature of postprocessing, it is quite easy to take advantage of parallel approaches to process the data.
 
+## Units
+
+I learned from Yuxi that the YT package can handle automatic unit conversion, just like what I saw from the [Unitful.jl](https://github.com/PainterQubits/Unitful.jl) package.
+
+Play with the unit package first, and learn the ideas.
+The ideas of how to make abstractions is more important than the unit conversion itself.
 
 ## Support for more complicated grid structures
 
