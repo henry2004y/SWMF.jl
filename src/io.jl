@@ -14,6 +14,20 @@ function Base.show(io::IO, s::Data)
    println(io, "w = ", s.w)
 end
 
+if VERSION < v"1.4"
+   import Base: read!
+
+   """
+   	read!(s,a)
+
+   Read slices of arrays using subarrays, in addition to the built-in methods.
+   """
+   function read!(s::IO, a::AbstractArray{T}) where T
+      GC.@preserve a unsafe_read(s, pointer(a), sizeof(a))
+      return a
+   end
+end
+
 """
 	readdata(filenameIn, (, dir=".", npict=1, verbose=false))
 
@@ -225,7 +239,7 @@ function readtecdata(filename::AbstractString; IsBinary=false, verbose=false)
          read!(f, @view connectivity[:,i])
       end
    else
-   	@inbounds for i = 1:nNode
+      @inbounds for i = 1:nNode
          x = readline(f)
          data[:,i] .= parse.(Float32, split(x))
       end
@@ -442,21 +456,6 @@ function getfilesize(fileID::IOStream, type::String)
    end
 
    return pictsize
-end
-
-
-if VERSION < v"1.4"
-   import Base: read!
-
-   """
-   	read!(s,a)
-
-   Read slices of arrays using subarrays, in addition to the built-in methods.
-   """
-   function read!(s::IO, a::AbstractArray{T}) where T
-      GC.@preserve a unsafe_read(s, pointer(a), sizeof(a))
-      return a
-   end
 end
 
 
@@ -917,8 +916,8 @@ end
 function swaprows!(X, i, j)
    m, n = size(X)
    if (1 ≤ i ≤ n) && (1 ≤ j ≤ n)
-      for k = 1:n
-        @inbounds X[i,k],X[j,k] = X[j,k],X[i,k]
+      @inbounds @simd for k = 1:n
+         X[i,k],X[j,k] = X[j,k],X[i,k]
       end
       return X
    else
