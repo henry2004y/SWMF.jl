@@ -1,7 +1,7 @@
 # SWMF
 [![](https://travis-ci.com/henry2004y/SWMF.svg?branch=master)][travis-url]
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
-[![](https://img.shields.io/badge/docs-latest-blue.svg)][SWMF-doc]
+[![](https://img.shields.io/badge/docs-latest-blue.svg)][SWMF.jl-doc]
 [![][codecov-img]][codecov-url]
 
 Fast SWMF data reader and converter using Julia.
@@ -16,7 +16,7 @@ This package provides the following functionalities:
   * data format conversion
   * programming language interoperability
 
-For more details, please check the [document][SWMF-doc].
+For more details, please check the [document][SWMF.jl-doc].
 
 ## Prerequisites
 
