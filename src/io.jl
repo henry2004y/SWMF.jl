@@ -126,8 +126,9 @@ end
 """
 	readtecdata(filename, IsBinary=false, verbose=false)
 
-Return header, data and connectivity from BATSRUS Tecplot outputs. Both binary
-and ASCII formats are supported. The default is reading pure ASCII data.
+Return header, data and connectivity from BATSRUS Tecplot outputs. Both 2D and
+3D binary and ASCII formats are supported. The default is reading pure ASCII
+data.
 # Examples
 ```jldoctest
 filename = "3d_ascii.dat"
@@ -209,7 +210,7 @@ function readtecdata(filename::AbstractString; IsBinary=false, verbose=false)
             elseif name in ("ET","ZONETYPE")
                if uppercase(value) in ("BRICK","FEBRICK")
                   ndim = 3
-               elseif uppercase(value) == "FEQUADRILATERAL"
+               elseif uppercase(value) in ("QUADRILATERAL", "FEQUADRILATERAL")
                   ndim = 2
                end
                ET = uppercase(value)
@@ -807,34 +808,41 @@ function showhead(data::Data)
 end
 
 """
-	convertVTK(head, data, connectivity, filename="3DBATSRUS")
+	convertVTK(head, data, connectivity, filename="out")
 
-Convert 3D unstructured Tecplot data to VTK. Note that if using voxel type data
+Convert unstructured Tecplot data to VTK. Note that if using voxel type data
 in VTK, the connectivity sequence is different from Tecplot.
+Note that the 3D connectivity sequence in Tecplot is the same with the
+`hexahedron` type in VTK, but different with the `voxel` type.
+The 2D connectivity sequence is the same as the `quad` type, but different with
+the `pixel` type.
+For example, in 3D the index conversion is:
+```
+# PLT to VTK voxel index_ = [1 2 4 3 5 6 8 7]
+for i = 1:2
+   connectivity = swaprows!(connectivity, 4*i-1, 4*i)
+end
+```
 """
-function convertVTK(head, data, connectivity, filename="3DBATSRUS")
+function convertVTK(head, data, connectivity, filename="out")
 
    nVar = length(head.variables)
-
-   points = @view data[1:head.ndim,:]
+   points = @view data[1:3,:]
    cells = Vector{MeshCell{Array{Int32,1}}}(undef,head.nCell)
+
    if head.ndim == 3
-      # PLT to VTK index_ = [1 2 4 3 5 6 8 7]
-      for i = 1:2
-         connectivity = swaprows!(connectivity, 4*i-1, 4*i)
-      end
       @inbounds for i = 1:head.nCell
-         cells[i] = MeshCell(VTKCellTypes.VTK_VOXEL, connectivity[:,i])
+         cells[i] = MeshCell(VTKCellTypes.VTK_HEXAHEDRON, connectivity[:,i])
       end
-   elseif head[:ndim] == 2
+   elseif head.ndim == 2
       @inbounds for i = 1:head.nCell
-         cells[i] = MeshCell(VTKCellTypes.VTK_PIXEL, connectivity[:,i])
+         cells[i] = MeshCell(VTKCellTypes.VTK_QUAD, connectivity[:,i])
       end
    end
 
    vtkfile = vtk_grid(filename, points, cells)
 
-   for ivar = head.ndim+1:nVar
+   for ivar = 4:nVar
       if occursin("_x",head.variables[ivar]) # vector
          var1 = @view data[ivar,:]
          var2 = @view data[ivar+1,:]
