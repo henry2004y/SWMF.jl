@@ -30,17 +30,25 @@ B = @. sqrt(v.Bx^2 + v.By^2 + v.Bz^2)
 ```
 
 ## Output format conversion
-ASCII Tecplot file:
+We can convert 2D/3D SWMF outputs `*.dat` to VTK formats. The default converted filename is `out.vt*`.
+
+ASCII Tecplot file (supports both `tec` and `tcp`):
 ```
-filename = "3d_ascii.dat"
-head, data, connectivity  = readtecdata(filename, IsBinary=false)
+filename = "x=0_mhd_1_n00000050.dat"
+head, data, connectivity = readtecdata(filename)
 convertVTK(head, data, connectivity, outname)
 ```
 
-Binary Tecplot file (set `DOSAVETECBINARY=TRUE`in SWMF `PARAM.in`):
+```
+filename = "3d_ascii.dat"
+head, data, connectivity = readtecdata(filename)
+convertVTK(head, data, connectivity, outname)
+```
+
+Binary Tecplot file (set `DOSAVETECBINARY=TRUE` in SWMF `PARAM.in`):
 ```
 filename = "3d_bin.dat"
-head, data, connectivity  = readtecdata(filename, true)
+head, data, connectivity = readtecdata(filename, IsBinary=true)
 convertVTK(head, data, connectivity, outname)
 ```
 
