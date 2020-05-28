@@ -588,15 +588,15 @@ function setunits( filehead::NamedTuple, type::AbstractString; distunit=1.0,
    # nPa & m/s may appear in the same headline?
    if type !== ""
       typeunit = uppercase(type)
-   elseif occursin("PIC",filehead[:headline])
+   elseif occursin("PIC", headline)
       typeunit = "PIC"
-   elseif occursin(" AU ", filehead[:headline])
+   elseif occursin(" AU ", headline)
       typeunit = "OUTERHELIO"
-   elseif occursin(r"(kg/m3)|(m/s)", filehead[:headline])
+   elseif occursin(r"(kg/m3)|(m/s)", headline)
       typeunit = "SI"
-   elseif occursin(r"(nPa)|( nT )", filehead[:headline])
+   elseif occursin(r"(nPa)|( nT )", headline)
       typeunit = "PLANETARY"
-   elseif occursin(r"(dyne)|( G)", filehead[:headline])
+   elseif occursin(r"(dyne)|( G)", headline)
       typeunit = "SOLAR"
    else
       typeunit = "NORMALIZED"
@@ -634,8 +634,8 @@ function setunits( filehead::NamedTuple, type::AbstractString; distunit=1.0,
       rhoSI = 1.0             # density unit in SI
       uSI   = 1.0             # velocity unit in SI
       pSI   = 1.0             # pressure unit in SI
-      bSI   = sqrt(mu0SI)     # magnetic unit in SI
-      jSI   = 1/sqrt(mu0SI)   # current unit in SI
+      bSI   = √mu0SI     # magnetic unit in SI
+      jSI   = 1/√(mu0SI)   # current unit in SI
       c0    = 1.0             # speed of light (for Boris correction)
    elseif typeunit == "PLANETARY"
       xSI   = 6378000         # Earth radius [default planet]
@@ -771,7 +771,7 @@ function showhead(file::FileList, head::NamedTuple)
    @info "nw       = $(head.nw)"
    @info "nx       = $(head.nx)"
 
-   if head[:neqpar] > 0
+   if head.neqpar > 0
       @info "parameters = $(head.eqpar)"
       @info "coord names= $(head.variables[1:head.ndim])"
       @info "var   names= $(head.variables[head.ndim+1:head.ndim+head.nw])"
@@ -799,7 +799,7 @@ function showhead(data::Data)
    println("nw       = $(head.nw)")
    println("nx       = $(head.nx)")
 
-   if head[:neqpar] > 0
+   if head.neqpar > 0
       println("parameters = $(head.eqpar)")
       println("coord names= $(head.variables[1:head.ndim])")
       println("var   names= $(head.variables[head.ndim+1:head.ndim+head.nw])")
