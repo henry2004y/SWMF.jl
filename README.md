@@ -13,7 +13,7 @@ Note that you must have Julia and this package installed to successfully use it 
 This package provides the following functionalities:
   * simulation data reader
   * 2D/3D region cut from the whole data
-  * data format conversion
+  * data format conversion from Tecplot to VTK
   * programming language interoperability
 
 For more details, please check the [document][SWMF-doc].
