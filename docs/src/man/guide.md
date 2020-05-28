@@ -90,6 +90,10 @@ I want to have some C dependencies in my code instead of rewriting everything in
 Right now this seems to be a little bit difficult for me. I need to learn from experts. The tracing scheme in C is rewritten in Julia so I don't need to bother for now.
 Checkout [BinaryBuilder](https://juliapackaging.github.io/BinaryBuilder.jl/latest/#Project-flow-1) for more information.
 
+## Native VTK output
+
+In the future of SWMF, we should be able to output VTK files directly with [VTKFortran](https://github.com/szaghi/VTKFortran). I won't do it now.
+
 ## Custom VTK reader
 
 ParaView allows for custom Python reader. Examples can be found in Chapter 12.4 in the official manual, and an example of full Python plugins can be found at Kiware's [gitlab](https://gitlab.kitware.com/paraview/paraview/blob/master/Examples/Plugins/PythonAlgorithm/PythonAlgorithmExamples.py) page.
