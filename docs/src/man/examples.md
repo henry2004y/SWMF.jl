@@ -48,7 +48,7 @@ convertVTK(head, data, connectivity, outname)
 Binary Tecplot file (set `DOSAVETECBINARY=TRUE` in SWMF `PARAM.in`):
 ```
 filename = "3d_bin.dat"
-head, data, connectivity = readtecdata(filename, IsBinary=true)
+head, data, connectivity = readtecdata(filename)
 convertVTK(head, data, connectivity, outname)
 ```
 
@@ -66,7 +66,7 @@ dir = "."
 filenames = Vector{String}(undef,0)
 filesfound = glob(filenamesIn, dir)
 filenames = vcat(filenames, filesfound)
-tec = readtecdata.(filenames, IsBinary=false) # head, data, connectivity
+tec = readtecdata.(filenames) # head, data, connectivity
 for (i, outname) in enumerate(filenames)
    convertVTK(tec[i][1], tec[i][2], tec[i][3], outname[1:end-4])
 end
@@ -81,7 +81,7 @@ filenames = Vector{String}(undef,0)
 filesfound = glob(filenamesIn, dir)
 filenames = vcat(filenames, filesfound)
 for (i, outname) in enumerate(filenames)
-   head, data, connectivity = readtecdata(outname, IsBinary=false)
+   head, data, connectivity = readtecdata(outname)
    convertVTK(head, data, connectivity, outname[1:end-4])
 end
 ```
@@ -101,7 +101,7 @@ filenames = vcat(filenames, filesfound)
 
 @sync @distributed for outname in filenames
    println("filename=$(outname)")
-   head, data, connectivity = readtecdata(outname, IsBinary=false)
+   head, data, connectivity = readtecdata(outname)
    convertVTK(head, data, connectivity, outname[1:end-4])
 end
 ```

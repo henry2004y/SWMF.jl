@@ -135,7 +135,7 @@ filename = "3d_ascii.dat"
 head, data, connectivity = readtecdata(filename)
 ```
 """
-function readtecdata(filename::AbstractString; IsBinary=false, verbose=false)
+function readtecdata(filename::AbstractString; verbose=false)
 
    f = open(filename)
 
@@ -147,6 +147,8 @@ function readtecdata(filename::AbstractString; IsBinary=false, verbose=false)
    ln = readline(f) |> strip
    if startswith(ln, "TITLE")
       title = match(r"\"(.*?)\"", split(ln,'=', keepempty=false)[2])[1]
+	   first_ = findfirst(':',title) + 2
+      ndim = parse(Int32, title[first_])
    else
       @warn "No title provided."
    end
@@ -166,60 +168,53 @@ function readtecdata(filename::AbstractString; IsBinary=false, verbose=false)
       @warn "No variable names provided."
    end
 
-   if startswith(ln, "ZONE")
-      ndim = 3 # default is 3D
+   while !startswith(ln, "AUXDATA")
+      if !startswith(ln, "ZONE") # ZONE allows multiple \n
+         zoneline = split(ln, ", ", keepempty=false)
+      else # if the ZONE line has nothing, this won't work!
+         zoneline = split(ln[6:end], ", ", keepempty=false)
+         replace(zoneline[1], '"'=>"") # Remove the quotes in T
+      end
+      for zline in zoneline
+         name, value = split(zline,'=', keepempty=false)
+         name = uppercase(name)
+         if name == "T" # ZONE title
+            T = value
+         elseif name in ("NODES","N")
+            nNode = parse(Int32, value)
+         elseif name in ("ELEMENTS","E")
+            nCell = parse(Int32, value)
+         elseif name in ("ET","ZONETYPE")
+            if uppercase(value) in ("BRICK","FEBRICK")
+               ndim = 3
+            elseif uppercase(value) in ("QUADRILATERAL", "FEQUADRILATERAL")
+               ndim = 2
+            end
+            ET = uppercase(value)
+         end
+      end
+      ln = readline(f) |> strip
+   end
+
+   auxdataname = String[]
+   auxdata = Union{Int32, AbstractString}[]
+   pt0 = position(f)
+
+   while startswith(ln, "AUXDATA") || startswith(ln,"DT")
+      name, value = split(ln,'"', keepempty=false)
+      name = name[9:end-1]
+      str = strip(value)
+      if name == ("ITER","NPROC")
+         str = parse(Int32, value)
+      elseif name == "TIMESIM"
+         sec = split(str,"=")
+         str = strip(sec[2])
+      end
+      push!(auxdataname, name)
+      push!(auxdata, str)
 
       pt0 = position(f)
-
-      while !isnothing(findfirst('=', ln))
-         if startswith(ln, "AUXDATA") || startswith(ln,"DT")
-            pt0 = position(f)
-            # Are there better ways to identify end of header?
-            if IsBinary && startswith(ln, "AUXDATA TIMESIMSHORT")
-               break # last line of AUXDATA
-            end
-            ln = readline(f) |> strip # I should save the auxdata!
-            continue
-         end
-
-         if !startswith(ln, "ZONE")
-            zoneline = split(ln, ", ", keepempty=false)
-         else # if the ZONE line has nothing, this won't work!
-            zoneline = split(ln[6:end], ", ", keepempty=false)
-            replace(zoneline[1], '"'=>"") # Remove the quotes in T
-         end
-         for zline in zoneline
-            name, value = split(zline,'=', keepempty=false)
-            name = uppercase(name)
-            if name == "T" # ZONE title
-               T = value
-            elseif name in ("NODES","N")
-               try
-                  nNode = parse(Int32, value)
-               catch
-                  IsBinary = true
-                  nNode = read(IOBuffer(value), Int32)
-               end
-            elseif name in ("ELEMENTS","E")
-               try
-                  nCell = parse(Int32, value)
-               catch
-                  IsBinary = true
-                  nCell = read(IOBuffer(value), Int32)
-               end
-            elseif name in ("ET","ZONETYPE")
-               if uppercase(value) in ("BRICK","FEBRICK")
-                  ndim = 3
-               elseif uppercase(value) in ("QUADRILATERAL", "FEQUADRILATERAL")
-                  ndim = 2
-               end
-               ET = uppercase(value)
-            end
-         end
-         ln = readline(f) |> strip
-      end
-   else
-      @warn "No zone info provided."
+      ln = readline(f) |> strip
    end
 
    seek(f, pt0)
@@ -231,6 +226,16 @@ function readtecdata(filename::AbstractString; IsBinary=false, verbose=false)
    elseif ndim == 2
 	   connectivity = Array{Int32,2}(undef,4,nCell)
    end
+
+   IsBinary = false
+   try
+      parse.(Float32, split(readline(f)))
+   catch
+      IsBinary = true
+      verbose && @info "reading binary file"
+   end
+
+   seek(f, pt0)
 
    if IsBinary
 	   @inbounds for i = 1:nNode
@@ -253,7 +258,7 @@ function readtecdata(filename::AbstractString; IsBinary=false, verbose=false)
    close(f)
 
    head = (variables=VARS, nNode=nNode, nCell=nCell, ndim=ndim, ET=ET,
-		title=title)
+		title=title, auxdataname=auxdataname, auxdata=auxdata)
 
    return head, data, connectivity
 end
@@ -855,6 +860,11 @@ function convertVTK(head, data, connectivity, filename="out")
          var = @view data[ivar,:]
          vtk_point_data(vtkfile, var, head.variables[ivar])
       end
+   end
+
+   # Add meta data from Tecplot AUXDATA
+   for i in 1:length(head.auxdata)
+      vtkfile[head.auxdataname[i],VTKFieldData()] = head.auxdata[i]
    end
 
    outfiles = vtk_save(vtkfile)
