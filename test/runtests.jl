@@ -2,7 +2,7 @@
 
 ENV["MPLBACKEND"]="agg" # no GUI
 
-using SWMF, Test
+using SWMF, Test, SHA
 
 function filecmp(path1::AbstractString, path2::AbstractString)
    stat1, stat2 = stat(path1), stat(path2)
@@ -65,9 +65,10 @@ end
 @testset "vtk" begin
    @info("VTK conversion test.")
    filename = "3d_bin.dat"
-   head, data, connectivity  = readtecdata(filename, IsBinary=true)
+   head, data, connectivity = readtecdata(filename)
    @test maximum(connectivity) ≤ head[:nNode] # check if it's read correctly
    convertVTK(head, data, connectivity)
-   @test filecmp("out.vtu","out_ref.vtu")
+   sha_str = bytes2hex(open(sha1, "out.vtu"))
+   @test sha_str == "a7951b1bcb0f75a3206d9d9864c2d96e9021e96e"
    rm("out.vtu")
 end

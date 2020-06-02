@@ -147,7 +147,7 @@ function readtecdata(filename::AbstractString; verbose=false)
    ln = readline(f) |> strip
    if startswith(ln, "TITLE")
       title = match(r"\"(.*?)\"", split(ln,'=', keepempty=false)[2])[1]
-	   first_ = findfirst(':',title) + 2
+      first_ = findfirst(':',title) + 2
       ndim = parse(Int32, title[first_])
    else
       @warn "No title provided."
@@ -197,18 +197,18 @@ function readtecdata(filename::AbstractString; verbose=false)
    end
 
    auxdataname = String[]
-   auxdata = Union{Int32, AbstractString}[]
+   auxdata = Union{Int32, String}[]
    pt0 = position(f)
 
    while startswith(ln, "AUXDATA") || startswith(ln,"DT")
       name, value = split(ln,'"', keepempty=false)
-      name = name[9:end-1]
-      str = strip(value)
-      if name == ("ITER","NPROC")
+      name = string(name[9:end-1])
+      str = string(strip(value))
+      if name in ("ITER","NPROC")
          str = parse(Int32, value)
       elseif name == "TIMESIM"
          sec = split(str,"=")
-         str = strip(sec[2])
+         str = string(strip(sec[2]))
       end
       push!(auxdataname, name)
       push!(auxdata, str)

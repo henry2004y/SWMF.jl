@@ -1,7 +1,7 @@
 name = "SWMF"
 uuid = "e74ebddf-6ac1-4047-a0e5-c32c99e57753"
 authors = ["hyzhou <hyzhou@umich.edu>"]
-version = "0.7.4"
+version = "0.8.0"
 
 [deps]
 Glob = "c27321d9-0574-5035-807b-f59d2c89b15c"
@@ -13,6 +13,7 @@ julia = "1"
 
 [extras]
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+SHA = "ea8e919c-243c-51af-8825-aaa63cd721ce"
 
 [targets]
-test = ["Test"]
+test = ["Test","SHA"]
