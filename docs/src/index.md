@@ -29,7 +29,7 @@ Pkg.add(PackageSpec(url="https://github.com/henry2004y/SWMF", rev="master"))
 
 ```@contents
 Pages = [
-    "man/guide.md",
+    "man/log.md",
     "man/examples.md",
     "man/functions.md",
     "man/types.md"
