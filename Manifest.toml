@@ -17,6 +17,12 @@ uuid = "ade2ca70-3891-5945-98fb-dc099432e06a"
 deps = ["Random", "Serialization", "Sockets"]
 uuid = "8ba89e20-285c-5b6f-9357-94700520ee1b"
 
+[[FillArrays]]
+deps = ["LinearAlgebra", "Random", "SparseArrays"]
+git-tree-sha1 = "be4180bdb27a11188d694ee3773122f4921f1a62"
+uuid = "1a297f60-69ca-5386-bcde-b61e274b549b"
+version = "0.8.13"
+
 [[Glob]]
 git-tree-sha1 = "4df9f7e06108728ebf00a0a11edee4b29a482bb2"
 uuid = "c27321d9-0574-5035-807b-f59d2c89b15c"
@@ -35,15 +41,19 @@ uuid = "8f399da3-3557-5675-b5ff-fb832c97cbdb"
 
 [[Libiconv_jll]]
 deps = ["Libdl", "Pkg"]
-git-tree-sha1 = "e5256a3b0ebc710dbd6da0c0b212164a3681037f"
+git-tree-sha1 = "c9d4035d7481bcdff2babf5a55525a818ef8ed8f"
 uuid = "94ce4f54-9a6c-5748-9c1c-f9c7231a4531"
-version = "1.16.0+2"
+version = "1.16.0+5"
 
 [[LightXML]]
 deps = ["Libdl", "XML2_jll"]
 git-tree-sha1 = "e129d9391168c677cd4800f5c0abb1ed8cb3794f"
 uuid = "9c8b4983-aa76-5018-a973-4c85ecc9e179"
 version = "0.9.0"
+
+[[LinearAlgebra]]
+deps = ["Libdl"]
+uuid = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
 
 [[Logging]]
 uuid = "56ddb016-857b-54e1-b83d-db4d58db5568"
@@ -77,6 +87,10 @@ uuid = "9e88b42a-f829-5b0c-bbe9-9e923198166b"
 [[Sockets]]
 uuid = "6462fe0b-24de-5631-8697-dd941f90decc"
 
+[[SparseArrays]]
+deps = ["LinearAlgebra", "Random"]
+uuid = "2f01184e-e22b-5df5-ae63-d93ebab69eaf"
+
 [[Test]]
 deps = ["Distributed", "InteractiveUtils", "Logging", "Random"]
 uuid = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
@@ -95,19 +109,19 @@ uuid = "cf7118a7-6976-5b1a-9a39-7adc72f591a4"
 uuid = "4ec0a83e-493e-50e2-b9ac-8f72acf5a8f5"
 
 [[WriteVTK]]
-deps = ["Base64", "CodecZlib", "LightXML", "Random", "TranscodingStreams"]
-git-tree-sha1 = "46c5cc2f4e094eb57685f5fb0629b7e14b6ad18b"
+deps = ["Base64", "CodecZlib", "FillArrays", "LightXML", "Random", "TranscodingStreams"]
+git-tree-sha1 = "6722390b9e370d26d6fa2aac7c56c35efaa388d1"
 uuid = "64499a7a-5c06-52f2-abe2-ccb03c286192"
-version = "1.6.0"
+version = "1.7.1"
 
 [[XML2_jll]]
 deps = ["Libdl", "Libiconv_jll", "Pkg", "Zlib_jll"]
-git-tree-sha1 = "987c02a43fa10a491a5f0f7c46a6d3559ed6a8e2"
+git-tree-sha1 = "432d91f45e950f2f2bda5c0f4e2b938c14493af9"
 uuid = "02c8fc9c-b97f-50b9-bbe4-9be30ff0a78a"
-version = "2.9.9+4"
+version = "2.9.10+1"
 
 [[Zlib_jll]]
 deps = ["Libdl", "Pkg"]
-git-tree-sha1 = "a2e0d558f6031002e380a90613b199e37a8565bf"
+git-tree-sha1 = "622d8b6dc0c7e8029f17127703de9819134d1b71"
 uuid = "83775a58-1f1d-513f-b197-d71354ab007a"
-version = "1.2.11+10"
+version = "1.2.11+14"

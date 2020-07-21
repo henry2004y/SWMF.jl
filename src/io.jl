@@ -831,7 +831,7 @@ function convertVTK(head, data, connectivity, filename="out")
 
    nVar = length(head.variables)
    points = @view data[1:3,:]
-   cells = Vector{MeshCell{Array{Int32,1}}}(undef,head.nCell)
+   cells = Vector{MeshCell{VTKCellType,Array{Int32,1}}}(undef,head.nCell)
 
    if head.nDim == 3
       @inbounds for i = 1:head.nCell
