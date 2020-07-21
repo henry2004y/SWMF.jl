@@ -60,7 +60,7 @@ See the [benchmark](https://henry2004y.github.io/SWMF/dev/#Benchmark-1) in the d
 
 * All the nice guys who share their codes!
 
-[travis-url]: https://travis-ci.com/github/henry2004y/SWMF.jl
+[travis-url]: https://travis-ci.com/github/henry2004y/SWMF.jl/builds
 [codecov-img]: https://codecov.io/gh/henry2004y/SWMF/branch/master/graph/badge.svg
 [codecov-url]: https://codecov.io/gh/henry2004y/SWMF
 [SWMF-doc]: https://henry2004y.github.io/SWMF.jl/dev
