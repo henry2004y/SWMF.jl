@@ -1,5 +1,5 @@
 # SWMF
-[![](https://travis-ci.com/henry2004y/SWMF.svg?branch=master)][travis-url]
+[![](https://travis-ci.com/henry2004y/SWMF.jl.svg?branch=master)][travis-url]
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![](https://img.shields.io/badge/docs-latest-blue.svg)][SWMF-doc]
 [![][codecov-img]][codecov-url]
