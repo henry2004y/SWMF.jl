@@ -124,11 +124,10 @@ function readlogdata( filename::AbstractString )
 end
 
 """
-	readtecdata(filename, IsBinary=false, verbose=false)
+	readtecdata(filename, verbose=false)
 
 Return header, data and connectivity from BATSRUS Tecplot outputs. Both 2D and
-3D binary and ASCII formats are supported. The default is reading pure ASCII
-data.
+3D binary and ASCII formats are supported.
 # Examples
 ```jldoctest
 filename = "3d_ascii.dat"
@@ -139,6 +138,7 @@ function readtecdata(filename::AbstractString; verbose=false)
 
    f = open(filename)
 
+   nDim  = 3 
    nNode = Int32(0)
    nCell = Int32(0)
    ET = ""
@@ -147,8 +147,6 @@ function readtecdata(filename::AbstractString; verbose=false)
    ln = readline(f) |> strip
    if startswith(ln, "TITLE")
       title = match(r"\"(.*?)\"", split(ln,'=', keepempty=false)[2])[1]
-      first_ = findfirst(':',title) + 2
-      ndim = parse(Int32, title[first_])
    else
       @warn "No title provided."
    end
@@ -186,9 +184,9 @@ function readtecdata(filename::AbstractString; verbose=false)
             nCell = parse(Int32, value)
          elseif name in ("ET","ZONETYPE")
             if uppercase(value) in ("BRICK","FEBRICK")
-               ndim = 3
+               nDim = 3
             elseif uppercase(value) in ("QUADRILATERAL", "FEQUADRILATERAL")
-               ndim = 2
+               nDim = 2
             end
             ET = uppercase(value)
          end
@@ -221,9 +219,9 @@ function readtecdata(filename::AbstractString; verbose=false)
 
    data = Array{Float32,2}(undef, length(VARS), nNode)
 
-   if ndim == 3
+   if nDim == 3
 	   connectivity = Array{Int32,2}(undef,8,nCell)
-   elseif ndim == 2
+   elseif nDim == 2
 	   connectivity = Array{Int32,2}(undef,4,nCell)
    end
 
@@ -257,7 +255,7 @@ function readtecdata(filename::AbstractString; verbose=false)
 
    close(f)
 
-   head = (variables=VARS, nNode=nNode, nCell=nCell, ndim=ndim, ET=ET,
+   head = (variables=VARS, nNode=nNode, nCell=nCell, nDim=nDim, ET=ET,
 		title=title, auxdataname=auxdataname, auxdata=auxdata)
 
    return head, data, connectivity
@@ -415,7 +413,7 @@ function getfilesize(fileID::IOStream, type::String)
       skipline(fileID)
       line = readline(fileID)
       line = split(line)
-	  ndim = parse(Int32,line[3])
+      ndim = parse(Int32,line[3])
       neqpar = parse(Int32,line[4])
       nw = parse(Int8,line[5])
       gencoord = ndim < 0
@@ -835,11 +833,11 @@ function convertVTK(head, data, connectivity, filename="out")
    points = @view data[1:3,:]
    cells = Vector{MeshCell{Array{Int32,1}}}(undef,head.nCell)
 
-   if head.ndim == 3
+   if head.nDim == 3
       @inbounds for i = 1:head.nCell
          cells[i] = MeshCell(VTKCellTypes.VTK_HEXAHEDRON, connectivity[:,i])
       end
-   elseif head.ndim == 2
+   elseif head.nDim == 2
       @inbounds for i = 1:head.nCell
          cells[i] = MeshCell(VTKCellTypes.VTK_QUAD, connectivity[:,i])
       end
