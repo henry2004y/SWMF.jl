@@ -1,10 +1,10 @@
 # SWMF
-[![](https://travis-ci.com/henry2004y/SWMF.svg?branch=master)][travis-url]
+[![](https://travis-ci.com/henry2004y/SWMF.jl.svg?branch=master)][travis-url]
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![](https://img.shields.io/badge/docs-latest-blue.svg)][SWMF-doc]
 [![][codecov-img]][codecov-url]
 
-Fast SWMF data reader and converter using Julia.
+Fast SWMF data reader and converter using Julia, originates back to June 14th, 2017.
 
 This is originally part of the [VisAna.jl](https://github.com/henry2004y/VisAnaJulia) package.
 Later this was moved out and became a stand-alone package.
@@ -60,7 +60,7 @@ See the [benchmark](https://henry2004y.github.io/SWMF/dev/#Benchmark-1) in the d
 
 * All the nice guys who share their codes!
 
-[travis-url]: https://travis-ci.com/henry2004y/SWMF/builds/
+[travis-url]: https://travis-ci.com/github/henry2004y/SWMF.jl/builds
 [codecov-img]: https://codecov.io/gh/henry2004y/SWMF/branch/master/graph/badge.svg
 [codecov-url]: https://codecov.io/gh/henry2004y/SWMF
 [SWMF-doc]: https://henry2004y.github.io/SWMF.jl/dev
