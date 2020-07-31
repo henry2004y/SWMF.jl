@@ -31,7 +31,7 @@ function readdata(filenameIn::AbstractString; dir=".", npict=1, verbose=false)
    end
 
    filename = joinpath(dir, filenames[1])
-   filelist, fileID, pictsize = getFileType(filename)
+   filelist, fileID, pictsize = getfiletype(filename)
 
    verbose &&
       @info "filename=$(filelist.name)\n"*"npict=$(filelist.npictinfiles)"
@@ -51,12 +51,12 @@ function readdata(filenameIn::AbstractString; dir=".", npict=1, verbose=false)
    fileType = lowercase(filelist.type)
    if fileType == "ascii"
       x, w = allocateBuffer(filehead, Float64) # why Float64?
-      getpictascii!(x, w, fileID, filehead)
+      getascii!(x, w, fileID, filehead)
    else
       skip(fileID, tag) # skip record start tag.
       fileType == "real4" ? T = Float32 : T = Float64
       x, w = allocateBuffer(filehead, T)
-      getpictreal!(x, w, fileID, filehead, T)
+      getbinary!(x, w, fileID, filehead, T)
    end
 
    #setunits(filehead,"")
@@ -237,7 +237,7 @@ end
 
 
 "Obtain file type."
-function getFileType(filename)
+function getfiletype(filename)
 
    fileID = open(filename, "r")
    bytes = filesize(filename)
@@ -269,7 +269,7 @@ function getFileType(filename)
             type = "binary"
          else
             throw(ArgumentError(
-               "Error in getFileTypes: strange unformatted file: $(filename)"))
+               "Error in getfiletype: incorrect formatted file: $(filename)"))
          end
 
          if lenhead == 500
@@ -476,7 +476,7 @@ function allocateBuffer(filehead::NamedTuple, T::DataType)
 end
 
 "Read ascii format data."
-function getpictascii!(x, w, fileID::IOStream, filehead::NamedTuple)
+function getascii!(x, w, fileID::IOStream, filehead::NamedTuple)
 
    ndim = filehead.ndim
 
@@ -506,7 +506,7 @@ end
 
 
 "Read binary format data."
-function getpictreal!(x, w, fileID::IOStream, filehead::NamedTuple, T::DataType)
+function getbinary!(x, w, fileID::IOStream, filehead::NamedTuple, T::DataType)
 
    ndim = filehead.ndim
    nw   = filehead.nw
