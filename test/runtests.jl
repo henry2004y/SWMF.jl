@@ -69,6 +69,6 @@ end
    @test maximum(connectivity) ≤ head[:nNode] # check if it's read correctly
    convertVTK(head, data, connectivity)
    sha_str = bytes2hex(open(sha1, "out.vtu"))
-   @test sha_str == "a7951b1bcb0f75a3206d9d9864c2d96e9021e96e"
+   @test sha_str == "5b04747666542d802357dec183177f757754a254"
    rm("out.vtu")
 end
