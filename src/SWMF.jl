@@ -7,6 +7,12 @@ using Printf, WriteVTK
 
 export Data, Vars
 
+"""
+	FileList
+
+Type for the file information. Contains filename `name`, file type `type` of
+ascii or binary, file size `bytes`, and number of snapshots `npictinfiles`.
+"""
 struct FileList
    name::String
    type::String
@@ -14,6 +20,12 @@ struct FileList
    npictinfiles::Int64
 end
 
+"""
+	Data
+
+Primary data storage type, with fields `head` of header info, grid `x`, value
+`w`, and file info `list`.
+"""
 struct Data{T<:AbstractFloat}
    head::NamedTuple
    x::Array{T}

@@ -7,9 +7,8 @@
 
 SWMF data reader and converter in Julia.
 
-This package is the inherited from its predecessor in IDL (developed by G.Toth) and Matlab (developed by H.Zhou), and was originally part of [VisAna](https://github.com/henry2004y/VisAnaJulia).
-It can be combined with the VTK format converter [writeVTK](https://github.com/jipolanco/WriteVTK.jl) to generate files for Paraview and Tecplot.
-By default the file size will be reduced with compression level 6, but the actual compression ratio depends on the original data.
+This package inherits the ideas and code structures from its predecessor in IDL (developed by Gábor Tóth) and Matlab (developed by Hongyang Zhou), and was originally part of [VisAna](https://github.com/henry2004y/VisAnaJulia).
+It can be combined with the VTK XML format converter [writeVTK](https://github.com/jipolanco/WriteVTK.jl) to generate files for Paraview and Tecplot.
 
 This package provides the following functionalities:
   * simulation data reader
@@ -30,7 +29,7 @@ Pkg.add(PackageSpec(url="https://github.com/henry2004y/SWMF", rev="master"))
 
 ```@contents
 Pages = [
-    "man/guide.md",
+    "man/log.md",
     "man/examples.md",
     "man/functions.md",
     "man/types.md"
@@ -40,14 +39,21 @@ Depth = 1
 
 ## Benchmark
 
-Data loading speed of a 2.4GB 3D binary file and 65KB 2D binary file on Macbook Pro with quad core 2.2 GHz Intel i7 and 16 GB 1600 MHz DDR3:
+Data loading speed of a 2.4GB 3D binary file, 317MB 3D binary file, and 65KB 2D binary file on Macbook Pro with quad core 2.2 GHz Intel i7 and 16 GB 1600 MHz DDR3:
 
-| Language |   tmax |  tmean |
+| 2.4GB |   tmax [s] |  tmean [s] |
 |:-------|:------:|:------:|
-| Julia  | 2.73s  |  1.32s |
-| Python | 1.35s  |  1.34s |
-| IDL    | 6.18s  |  6.08s |
-| MATLAB | 16.02s | 10.60s |
+| Julia  | 2.73  |  1.32 |
+| Python | 1.35  |  1.34 |
+| IDL    | 6.18  |  6.08 |
+| MATLAB | 16.02 | 10.60 |
+
+| 317MB   | tmean [ms] |
+|:-------|:---------:|
+| Julia  | 180.8    |
+| Python | 179.5   |
+| IDL    | 453.5   |
+| MATLAB | 698.4  |
 
 | 65KB   | tmean [μs] |
 |:-------|:---------:|
@@ -58,6 +64,21 @@ Data loading speed of a 2.4GB 3D binary file and 65KB 2D binary file on Macbook 
 
 The Julia, IDL, and MATLAB version all shares the same kernel design. The timings are obtained for Julia v1.3.1, Python 3.7.6 + Numpy 1.18.1, IDL 8.5, and MATLAB R2018b.
 For dynamic languages, the first time when function gets executed is usually also the slowest. Currently [spacepy](https://github.com/spacepy/spacepy) performs slightly better because of the well-optimized numpy library in C. For small data sizes, Julia is much faster than others.
+
+## Calling From Python
+
+In Python, you can easily take advantage of this package with the aid of [PyJulia](https://pyjulia.readthedocs.io/en/latest/).
+After the installation, in the Python repl:
+```python
+from julia import SWMF
+dir = 'test'
+filename = '1d__raw_2_t25.60000_n00000258.out'
+data = SWMF.readdata(filename, dir=dir)
+```
+There you have it! Enjoy!
+
+!!! warning "Python dependency"
+    `PyPlot` package backend may be affected by the settings of `PyJulia` dependencies. If you want to set it back properly, you need to recompile the `PyCall` package in Julia.
 
 ## Developers
 

@@ -1,10 +1,32 @@
 # All the IO related APIs.
 
-export readdata, readlogdata, readtecdata, convertVTK
+export readdata, readlogdata, readtecdata, showhead, convertVTK, convertBox2VTK
 
 const tag = 4 # Fortran record tag
 
 searchdir(path,key) = filter(x->occursin(key,x), readdir(path))
+
+function Base.show(io::IO, s::Data)
+   showhead(s)
+   println(io, "filesize = ", s.list.bytes, " bytes")
+   println(io, "snapshots = ", s.list.npictinfiles)
+   println(io, "x = ", s.x)
+   println(io, "w = ", s.w)
+end
+
+if VERSION < v"1.4"
+   import Base: read!
+
+   """
+   	read!(s,a)
+
+   Read slices of arrays using subarrays, in addition to the built-in methods.
+   """
+   function read!(s::IO, a::AbstractArray{T}) where T
+      GC.@preserve a unsafe_read(s, pointer(a), sizeof(a))
+      return a
+   end
+end
 
 """
 	readdata(filenameIn, (, dir=".", npict=1, verbose=false))
@@ -22,7 +44,7 @@ data = readdata(filename)
 function readdata(filenameIn::AbstractString; dir=".", npict=1, verbose=false)
 
    # Check the existence of files
-	filenames = searchdir(dir, Regex(filenameIn)) # potential bugs
+   filenames = searchdir(dir, Regex(filenameIn)) # potential bugs
    if isempty(filenames)
       throw(ArgumentError(
          "readdata: no matching filename was found for $(filenameIn)"))
@@ -102,20 +124,21 @@ function readlogdata( filename::AbstractString )
 end
 
 """
-	readtecdata(filename, IsBinary=false, verbose=false)
+	readtecdata(filename, verbose=false)
 
-Return header, data and connectivity from BATSRUS Tecplot outputs. Both binary
-and ASCII formats are supported. The default is reading pure ASCII data.
+Return header, data and connectivity from BATSRUS Tecplot outputs. Both 2D and
+3D binary and ASCII formats are supported.
 # Examples
 ```jldoctest
 filename = "3d_ascii.dat"
 head, data, connectivity = readtecdata(filename)
 ```
 """
-function readtecdata(filename::AbstractString; IsBinary=false, verbose=false)
+function readtecdata(filename::AbstractString; verbose=false)
 
    f = open(filename)
 
+   nDim  = 3 
    nNode = Int32(0)
    nCell = Int32(0)
    ET = ""
@@ -143,71 +166,74 @@ function readtecdata(filename::AbstractString; IsBinary=false, verbose=false)
       @warn "No variable names provided."
    end
 
-   if startswith(ln, "ZONE")
-      ndim = 3 # default is 3D
+   while !startswith(ln, "AUXDATA")
+      if !startswith(ln, "ZONE") # ZONE allows multiple \n
+         zoneline = split(ln, ", ", keepempty=false)
+      else # if the ZONE line has nothing, this won't work!
+         zoneline = split(ln[6:end], ", ", keepempty=false)
+         replace(zoneline[1], '"'=>"") # Remove the quotes in T
+      end
+      for zline in zoneline
+         name, value = split(zline,'=', keepempty=false)
+         name = uppercase(name)
+         if name == "T" # ZONE title
+            T = value
+         elseif name in ("NODES","N")
+            nNode = parse(Int32, value)
+         elseif name in ("ELEMENTS","E")
+            nCell = parse(Int32, value)
+         elseif name in ("ET","ZONETYPE")
+            if uppercase(value) in ("BRICK","FEBRICK")
+               nDim = 3
+            elseif uppercase(value) in ("QUADRILATERAL", "FEQUADRILATERAL")
+               nDim = 2
+            end
+            ET = uppercase(value)
+         end
+      end
+      ln = readline(f) |> strip
+   end
+
+   auxdataname = String[]
+   auxdata = Union{Int32, String}[]
+   pt0 = position(f)
+
+   while startswith(ln, "AUXDATA") || startswith(ln,"DT")
+      name, value = split(ln,'"', keepempty=false)
+      name = string(name[9:end-1])
+      str = string(strip(value))
+      if name in ("ITER","NPROC")
+         str = parse(Int32, value)
+      elseif name == "TIMESIM"
+         sec = split(str,"=")
+         str = string(strip(sec[2]))
+      end
+      push!(auxdataname, name)
+      push!(auxdata, str)
 
       pt0 = position(f)
-
-      while !isnothing(findfirst('=', ln))
-         if startswith(ln, "AUXDATA") || startswith(ln,"DT")
-            pt0 = position(f)
-            # Are there better ways to identify end of header?
-            if IsBinary && startswith(ln, "AUXDATA TIMESIMSHORT")
-               break # last line of AUXDATA
-            end
-            ln = readline(f) |> strip # I should save the auxdata!
-            continue
-         end
-
-         if !startswith(ln, "ZONE")
-            zoneline = split(ln, ", ", keepempty=false)
-         else # if the ZONE line has nothing, this won't work!
-            zoneline = split(ln[6:end], ", ", keepempty=false)
-            replace(zoneline[1], '"'=>"") # Remove the quotes in T
-         end
-         for zline in zoneline
-            name, value = split(zline,'=', keepempty=false)
-            name = uppercase(name)
-            if name == "T" # ZONE title
-               T = value
-            elseif name in ("NODES","N")
-               try
-                  nNode = parse(Int32, value)
-               catch
-                  IsBinary = true
-                  nNode = read(IOBuffer(value), Int32)
-               end
-            elseif name in ("ELEMENTS","E")
-               try
-                  nCell = parse(Int32, value)
-               catch
-                  IsBinary = true
-                  nCell = read(IOBuffer(value), Int32)
-               end
-            elseif name in ("ET","ZONETYPE")
-               if uppercase(value) in ("BRICK","FEBRICK")
-                  ndim = 3
-               elseif uppercase(value) == "FEQUADRILATERAL"
-                  ndim = 2
-               end
-               ET = uppercase(value)
-            end
-         end
-         ln = readline(f) |> strip
-      end
-   else
-      @warn "No zone info provided."
+      ln = readline(f) |> strip
    end
 
    seek(f, pt0)
 
    data = Array{Float32,2}(undef, length(VARS), nNode)
 
-   if ndim == 3
+   if nDim == 3
 	   connectivity = Array{Int32,2}(undef,8,nCell)
-   elseif ndim == 2
+   elseif nDim == 2
 	   connectivity = Array{Int32,2}(undef,4,nCell)
    end
+
+   IsBinary = false
+   try
+      parse.(Float32, split(readline(f)))
+   catch
+      IsBinary = true
+      verbose && @info "reading binary file"
+   end
+
+   seek(f, pt0)
 
    if IsBinary
 	   @inbounds for i = 1:nNode
@@ -217,7 +243,7 @@ function readtecdata(filename::AbstractString; IsBinary=false, verbose=false)
          read!(f, @view connectivity[:,i])
       end
    else
-   	@inbounds for i = 1:nNode
+      @inbounds for i = 1:nNode
          x = readline(f)
          data[:,i] .= parse.(Float32, split(x))
       end
@@ -229,8 +255,8 @@ function readtecdata(filename::AbstractString; IsBinary=false, verbose=false)
 
    close(f)
 
-   head = (variables=VARS, nNode=nNode, nCell=nCell, ndim=ndim, ET=ET,
-		title=title)
+   head = (variables=VARS, nNode=nNode, nCell=nCell, nDim=nDim, ET=ET,
+		title=title, auxdataname=auxdataname, auxdata=auxdata)
 
    return head, data, connectivity
 end
@@ -373,15 +399,8 @@ function skipline(s::IO)
     return nothing
 end
 
-""" Return the size of file. """
+"Return the size in bytes for one snapshot."
 function getfilesize(fileID::IOStream, type::String)
-
-   pictsize = 0
-
-   ndim = convert(Int32,1)
-   tmp  = convert(Int32,1)
-   nw   = convert(Int32,1)
-   nxs  = 0
 
    ftype = string(lowercase(type))
 
@@ -394,6 +413,7 @@ function getfilesize(fileID::IOStream, type::String)
       skipline(fileID)
       line = readline(fileID)
       line = split(line)
+      ndim = parse(Int32,line[3])
       neqpar = parse(Int32,line[4])
       nw = parse(Int8,line[5])
       gencoord = ndim < 0
@@ -442,18 +462,6 @@ function getfilesize(fileID::IOStream, type::String)
    return pictsize
 end
 
-# This will be supported in Julia v1.4. Remove it then.
-import Base: read!
-
-"""
-	read!(s,a)
-
-Read slices of arrays using subarrays, in addition to the built-in methods.
-"""
-function read!(s::IO, a::AbstractArray{T}) where T
-   GC.@preserve a unsafe_read(s, pointer(a), sizeof(a))
-   return a
-end
 
 "Create buffer for x and w."
 function allocateBuffer(filehead::NamedTuple, T::DataType)
@@ -583,15 +591,15 @@ function setunits( filehead::NamedTuple, type::AbstractString; distunit=1.0,
    # nPa & m/s may appear in the same headline?
    if type !== ""
       typeunit = uppercase(type)
-   elseif occursin("PIC",filehead[:headline])
+   elseif occursin("PIC", headline)
       typeunit = "PIC"
-   elseif occursin(" AU ", filehead[:headline])
+   elseif occursin(" AU ", headline)
       typeunit = "OUTERHELIO"
-   elseif occursin(r"(kg/m3)|(m/s)", filehead[:headline])
+   elseif occursin(r"(kg/m3)|(m/s)", headline)
       typeunit = "SI"
-   elseif occursin(r"(nPa)|( nT )", filehead[:headline])
+   elseif occursin(r"(nPa)|( nT )", headline)
       typeunit = "PLANETARY"
-   elseif occursin(r"(dyne)|( G)", filehead[:headline])
+   elseif occursin(r"(dyne)|( G)", headline)
       typeunit = "SOLAR"
    else
       typeunit = "NORMALIZED"
@@ -629,8 +637,8 @@ function setunits( filehead::NamedTuple, type::AbstractString; distunit=1.0,
       rhoSI = 1.0             # density unit in SI
       uSI   = 1.0             # velocity unit in SI
       pSI   = 1.0             # pressure unit in SI
-      bSI   = sqrt(mu0SI)     # magnetic unit in SI
-      jSI   = 1/sqrt(mu0SI)   # current unit in SI
+      bSI   = √mu0SI     # magnetic unit in SI
+      jSI   = 1/√(mu0SI)   # current unit in SI
       c0    = 1.0             # speed of light (for Boris correction)
    elseif typeunit == "PLANETARY"
       xSI   = 6378000         # Earth radius [default planet]
@@ -755,18 +763,18 @@ end
 Displaying file header information.
 """
 function showhead(file::FileList, head::NamedTuple)
-   @info "filename  = $(file.name)"
-   @info "filetype  = $(file.type)"
-   @info "headline  = $(head.headline)"
-   @info "it        = $(head.it)"
-   @info "time      = $(head.time)"
-   @info "gencoord  = $(head.gencoord)"
-   @info "ndim      = $(head.ndim)"
-   @info "neqpar    = $(head.neqpar)"
-   @info "nw        = $(head.nw)"
-   @info "nx        = $(head.nx)"
+   @info "filename = $(file.name)"
+   @info "filetype = $(file.type)"
+   @info "headline = $(head.headline)"
+   @info "it       = $(head.it)"
+   @info "time     = $(head.time)"
+   @info "gencoord = $(head.gencoord)"
+   @info "ndim     = $(head.ndim)"
+   @info "neqpar   = $(head.neqpar)"
+   @info "nw       = $(head.nw)"
+   @info "nx       = $(head.nx)"
 
-   if head[:neqpar] > 0
+   if head.neqpar > 0
       @info "parameters = $(head.eqpar)"
       @info "coord names= $(head.variables[1:head.ndim])"
       @info "var   names= $(head.variables[head.ndim+1:head.ndim+head.nw])"
@@ -775,34 +783,69 @@ function showhead(file::FileList, head::NamedTuple)
 end
 
 """
-	convertVTK(head, data, connectivity, filename)
+	showhead(data)
 
-Convert 3D unstructured Tecplot data to VTK. Note that if using voxel type data
-in VTK, the connectivity sequence is different from Tecplot.
+Displaying file information for the `Data` type.
 """
-function convertVTK(head, data, connectivity, filename="3DBATSRUS")
+function showhead(data::Data)
+   head = data.head
+   list = data.list
+
+   println("filename = $(list.name)")
+   println("filetype = $(list.type)")
+   println("headline = $(head.headline)")
+   println("it       = $(head.it)")
+   println("time     = $(head.time)")
+   println("gencoord = $(head.gencoord)")
+   println("ndim     = $(head.ndim)")
+   println("neqpar   = $(head.neqpar)")
+   println("nw       = $(head.nw)")
+   println("nx       = $(head.nx)")
+
+   if head.neqpar > 0
+      println("parameters = $(head.eqpar)")
+      println("coord names= $(head.variables[1:head.ndim])")
+      println("var   names= $(head.variables[head.ndim+1:head.ndim+head.nw])")
+      println("param names= $(head.variables[head.ndim+head.nw+1:end])")
+   end
+end
+
+"""
+	convertVTK(head, data, connectivity, filename="out")
+
+Convert unstructured Tecplot data to VTK. Note that if using voxel type data
+in VTK, the connectivity sequence is different from Tecplot.
+Note that the 3D connectivity sequence in Tecplot is the same with the
+`hexahedron` type in VTK, but different with the `voxel` type.
+The 2D connectivity sequence is the same as the `quad` type, but different with
+the `pixel` type.
+For example, in 3D the index conversion is:
+```
+# PLT to VTK voxel index_ = [1 2 4 3 5 6 8 7]
+for i = 1:2
+   connectivity = swaprows!(connectivity, 4*i-1, 4*i)
+end
+```
+"""
+function convertVTK(head, data, connectivity, filename="out")
 
    nVar = length(head.variables)
+   points = @view data[1:3,:]
+   cells = Vector{MeshCell{VTKCellType,Array{Int32,1}}}(undef,head.nCell)
 
-   points = @view data[1:head.ndim,:]
-   cells = Vector{MeshCell{Array{Int32,1}}}(undef,head.nCell)
-   if head.ndim == 3
-      # PLT to VTK index_ = [1 2 4 3 5 6 8 7]
-      for i = 1:2
-         connectivity = swaprows!(connectivity, 4*i-1, 4*i)
-      end
+   if head.nDim == 3
       @inbounds for i = 1:head.nCell
-         cells[i] = MeshCell(VTKCellTypes.VTK_VOXEL, connectivity[:,i])
+         cells[i] = MeshCell(VTKCellTypes.VTK_HEXAHEDRON, connectivity[:,i])
       end
-   elseif head[:ndim] == 2
+   elseif head.nDim == 2
       @inbounds for i = 1:head.nCell
-         cells[i] = MeshCell(VTKCellTypes.VTK_PIXEL, connectivity[:,i])
+         cells[i] = MeshCell(VTKCellTypes.VTK_QUAD, connectivity[:,i])
       end
    end
 
    vtkfile = vtk_grid(filename, points, cells)
 
-   for ivar = head.ndim+1:nVar
+   for ivar = 4:nVar
       if occursin("_x",head.variables[ivar]) # vector
          var1 = @view data[ivar,:]
          var2 = @view data[ivar+1,:]
@@ -817,14 +860,80 @@ function convertVTK(head, data, connectivity, filename="3DBATSRUS")
       end
    end
 
+   # Add meta data from Tecplot AUXDATA
+   for i in 1:length(head.auxdata)
+      vtkfile[head.auxdataname[i],VTKFieldData()] = head.auxdata[i]
+   end
+
    outfiles = vtk_save(vtkfile)
 end
+
+"""
+	convertBoxVTK(filename; dir=".", gridType=1, verbose=false)
+
+Convert 3D structured Tecplot data to VTK.
+"""
+function convertBox2VTK(filename::AbstractString; dir=".", gridType=1,
+   verbose=false)
+
+   data = readdata(filename, dir=dir)
+
+   nVar = length(data.head.wnames)
+
+   outname = filename[1:end-4]
+
+   if gridType == 1 # rectilinear grid
+      x = @view data.x[:,1,1,1]
+      y = @view data.x[1,:,1,2]
+      z = @view data.x[1,1,:,3]
+
+      outfiles = vtk_grid(outname, x,y,z) do vtk
+         for ivar = 1:nVar
+            if data.head.wnames[ivar][end] == 'x' # vector
+               var1 = @view data.w[:,:,:,ivar]
+               var2 = @view data.w[:,:,:,ivar+1]
+               var3 = @view data.w[:,:,:,ivar+2]
+               namevar = data.head.wnames[ivar][1:end-1]
+               vtk_point_data(vtk, (var1, var2, var3), namevar)
+            elseif data.head.wnames[ivar][end] in ('y','z')
+               continue
+            else
+               var = @view data.w[:,:,:,ivar]
+               vtk_point_data(vtk, var, data.head.wnames[ivar])
+            end
+         end
+      end
+   elseif gridType == 2 # structured grid
+      xyz = permutedims(data.x, [4,1,2,3])
+
+      outfiles = vtk_grid(outname, xyz) do vtk
+         for ivar = 1:nVar
+            if data.head.wnames[ivar][end] == 'x' # vector
+               var1 = @view data.w[:,:,:,ivar]
+               var2 = @view data.w[:,:,:,ivar+1]
+               var3 = @view data.w[:,:,:,ivar+2]
+               namevar = data.head.wnames[ivar][1:end-1]
+               vtk_point_data(vtk, (var1, var2, var3), namevar)
+            elseif data.head.wnames[ivar][end] in ('y','z')
+               continue
+            else
+               var = @view data.w[:,:,:,ivar]
+               vtk_point_data(vtk, var, data.head.wnames[ivar])
+            end
+         end
+      end
+   elseif gridType == 3 # unstructured grid, not finished
+      @error "Not implemented yet!"
+   end
+   verbose && @info "$(filename) finished conversion."
+end
+
 
 function swaprows!(X, i, j)
    m, n = size(X)
    if (1 ≤ i ≤ n) && (1 ≤ j ≤ n)
-      for k = 1:n
-        @inbounds X[i,k],X[j,k] = X[j,k],X[i,k]
+      @inbounds @simd for k = 1:n
+         X[i,k],X[j,k] = X[j,k],X[i,k]
       end
       return X
    else

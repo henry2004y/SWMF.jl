@@ -49,64 +49,6 @@ function convertBox2VTK_matlab(filenames::Array{String,1})
 
 end
 
-function convertBox2VTK(filenames::Array{String,1}; dir=".", gridType=1)
-
-   for filename in filenames
-      head, data, list = readdata(filename, dir=dir, verbose=false)
-
-      nVar = length(head[1][:wnames])
-
-      outname = filename[1:end-4]
-
-      if gridType == 1 # rectilinear grid
-         x = @view data[1].x[:,1,1,1]
-         y = @view data[1].x[1,:,1,2]
-         z = @view data[1].x[1,1,:,3]
-
-         outfiles = vtk_grid(dir*outname, x,y,z) do vtk
-            for ivar = 1:nVar
-               if head[1][:wnames][ivar][end] == 'x' # vector
-                  var1 = @view data[1].w[:,:,:,ivar]
-                  var2 = @view data[1].w[:,:,:,ivar+1]
-                  var3 = @view data[1].w[:,:,:,ivar+2]
-                  namevar = head[1][:wnames][ivar][1:end-1]
-                  vtk_point_data(vtk, (var1, var2, var3), namevar)
-               elseif head[1][:wnames][ivar][end] in ('y','z')
-                  continue
-               else
-                  var = @view data[1].w[:,:,:,ivar]
-                  vtk_point_data(vtk, var, head[1][:wnames][ivar])
-               end
-            end
-         end
-      elseif gridType == 2 # structured grid
-         xyz = permutedims(data[1].x, [4,1,2,3])
-
-         outfiles = vtk_grid(dir*outname, xyz) do vtk
-            for ivar = 1:nVar
-               if head[1][:wnames][ivar][end] == 'x' # vector
-                  var1 = @view data[1].w[:,:,:,ivar]
-                  var2 = @view data[1].w[:,:,:,ivar+1]
-                  var3 = @view data[1].w[:,:,:,ivar+2]
-                  namevar = head[1][:wnames][ivar][1:end-1]
-                  vtk_point_data(vtk, (var1, var2, var3), namevar)
-               elseif head[1][:wnames][ivar][end] in ('y','z')
-                  continue
-               else
-                  var = @view data[1].w[:,:,:,ivar]
-                  vtk_point_data(vtk, var, head[1][:wnames][ivar])
-               end
-            end
-         end
-      elseif gridType == 3 # unstructured grid, not finished
-         vtkfile = vtk_grid(dir*outname, points, cells)
-         vtk_cell_data(vtkfile, cdata, "my_cell_data")
-         outfiles = vtk_save(vtkfile)
-      end
-      println(filename," finished conversion.")
-   end
-
-end
 
 function convertTec2VTK()
    filename = "3d_ascii.dat"
