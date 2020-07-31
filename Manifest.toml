@@ -110,9 +110,9 @@ uuid = "4ec0a83e-493e-50e2-b9ac-8f72acf5a8f5"
 
 [[WriteVTK]]
 deps = ["Base64", "CodecZlib", "FillArrays", "LightXML", "Random", "TranscodingStreams"]
-git-tree-sha1 = "6722390b9e370d26d6fa2aac7c56c35efaa388d1"
+git-tree-sha1 = "deb18aae386ed5a973bbf2e4e10a990caed9a531"
 uuid = "64499a7a-5c06-52f2-abe2-ccb03c286192"
-version = "1.7.1"
+version = "1.7.2"
 
 [[XML2_jll]]
 deps = ["Libdl", "Libiconv_jll", "Pkg", "Zlib_jll"]
