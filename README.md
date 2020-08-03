@@ -25,14 +25,10 @@ Julia 1.0+
 ## Installation
 ```
 using Pkg
-Pkg.add(PackageSpec(url="https://github.com/henry2004y/Batsrus", rev="master"))
+Pkg.add("Batsrus")
 ```
 
 ## Usage
-```
-#using Pkg; Pkg.activate(".") # for dev only
-using Batsrus
-```
 
 See the [examples](https://henry2004y.github.io/Batsrus/dev/man/examples/).
 
