@@ -10,7 +10,7 @@ makedocs(
 )
 
 deploydocs(
-    repo = "github.com/henry2004y/Batsrus.git",
+    repo = "github.com/henry2004y/Batsrus.jl.git",
     target = "build",
     branch = "gh-pages"
 )
