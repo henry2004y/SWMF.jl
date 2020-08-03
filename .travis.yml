@@ -13,6 +13,8 @@ branches:
     - master
 
 jobs:
+  allow_failures:
+    - julia: nightly
   include:
     - stage: "Documentation"
       julia: 1.5
@@ -28,7 +30,3 @@ notifications:
 
 after_success:
   - julia -e 'using Pkg; Pkg.add("Coverage"); using Coverage; Codecov.submit(process_folder())'
-
-jobs:
-  allow_failures:
-    - julia: nightly
