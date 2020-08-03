@@ -1,4 +1,4 @@
-# Script for using VisAna in REPL
+# Script for using Batsrus loader in REPL
 #
 # Hongyang Zhou, hyzhou@umich.edu 08/02/2019
 

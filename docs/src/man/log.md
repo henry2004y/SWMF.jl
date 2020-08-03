@@ -66,7 +66,7 @@ All the AXUDATA information is now stored into global VTK data.
 
 ### Native VTK output
 
-In the future of SWMF, we should be able to output VTK files directly with [VTKFortran](https://github.com/szaghi/VTKFortran). I won't do it now.
+In the future versions of BATSRUS, we should be able to output VTK files directly with [VTKFortran](https://github.com/szaghi/VTKFortran). I won't do it now.
 
 ### Custom VTK reader
 

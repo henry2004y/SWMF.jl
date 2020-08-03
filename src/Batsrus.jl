@@ -1,4 +1,4 @@
-module SWMF
+module Batsrus
 # BATSRUS data reader and analyzer.
 #
 # Hongyang Zhou, hyzhou@umich.edu

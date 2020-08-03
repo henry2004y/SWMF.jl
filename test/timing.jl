@@ -37,7 +37,7 @@ tight_layout()
 
 ## Timing for reading files in Julia
 #=
-using SWMF, BenchmarkTools
+using Batsrus, BenchmarkTools
 #filename = "3d_var_region0_0_t00001527_n00005528.out"
 #filename = "z=0_raw_1_t25.60000_n00000258.out"
 filename = "3d_var_region0_0_t00001205_n00037679.out"

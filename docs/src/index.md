@@ -1,11 +1,11 @@
-# SWMF.jl Documentation
+# Batsrus.jl Documentation
 
 ## Overview
 
 !!! note
     This package is still under development, so be careful for any future breaking changes!
 
-SWMF data reader and converter in Julia.
+BATSRUS data reader and converter in Julia.
 
 This package inherits the ideas and code structures from its predecessor in IDL (developed by Gábor Tóth) and Matlab (developed by Hongyang Zhou), and was originally part of [VisAna](https://github.com/henry2004y/VisAnaJulia).
 It can be combined with the VTK XML format converter [writeVTK](https://github.com/jipolanco/WriteVTK.jl) to generate files for Paraview and Tecplot.
@@ -24,7 +24,7 @@ The ultimate goal is to build a convenient tool of reading and analyzing simulat
 Install VisAna from the `julia REPL` prompt with
 ```julia
 using Pkg
-Pkg.add(PackageSpec(url="https://github.com/henry2004y/SWMF", rev="master"))
+Pkg.add(PackageSpec(url="https://github.com/henry2004y/Batsrus", rev="master"))
 ```
 
 ```@contents
@@ -70,10 +70,10 @@ For dynamic languages, the first time when function gets executed is usually als
 In Python, you can easily take advantage of this package with the aid of [PyJulia](https://pyjulia.readthedocs.io/en/latest/).
 After the installation, in the Python repl:
 ```python
-from julia import SWMF
+from julia import Batsrus
 dir = 'test'
 filename = '1d__raw_2_t25.60000_n00000258.out'
-data = SWMF.readdata(filename, dir=dir)
+data = Batsrus.readdata(filename, dir=dir)
 ```
 There you have it! Enjoy!
 

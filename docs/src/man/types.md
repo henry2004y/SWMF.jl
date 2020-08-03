@@ -1,9 +1,9 @@
 # Public types
 
-## Public types in module `SWMF`:
+## Public types in module `Batsrus`:
 
 ```@autodocs
-Modules = [SWMF]
+Modules = [Batsrus]
 Private = false
 Order = [:type]
 ```

@@ -1,9 +1,9 @@
 # Functions
 
-## Functions exported from `SWMF`:
+## Functions exported from `Batsrus`:
 
 ```@autodocs
-Modules = [SWMF]
+Modules = [Batsrus]
 Private = false
 Order = [:function]
 ```

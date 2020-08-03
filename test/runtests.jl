@@ -1,8 +1,8 @@
-# Test of SWMF data loader
+# Test of BATSRUS data loader
 
 ENV["MPLBACKEND"]="agg" # no GUI
 
-using SWMF, Test, SHA
+using Batsrus, Test, SHA
 
 function filecmp(path1::AbstractString, path2::AbstractString)
    stat1, stat2 = stat(path1), stat(path2)

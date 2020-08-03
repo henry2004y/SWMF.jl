@@ -1,6 +1,6 @@
 # Convert full BATSRUS AMR output to VTK.
 
-using FortranFiles, SWMF, WriteVTK
+using FortranFiles, Batsrus, WriteVTK
 
 ##
 
