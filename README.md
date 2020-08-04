@@ -58,5 +58,5 @@ See the [benchmark](https://henry2004y.github.io/Batsrus/dev/#Benchmark-1) in th
 
 [travis-url]: https://travis-ci.com/github/henry2004y/Batsrus.jl/builds
 [codecov-img]: https://codecov.io/gh/henry2004y/Batsrus/branch/master/graph/badge.svg
-[codecov-url]: https://codecov.io/gh/henry2004y/Batsrus
+[codecov-url]: https://codecov.io/gh/henry2004y/Batsrus.jl
 [Batsrus-doc]: https://henry2004y.github.io/Batsrus.jl/dev
