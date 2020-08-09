@@ -220,11 +220,11 @@ function subdata(data, xind::Vector{Int}, yind::Vector{Int}, zind::Vector{Int},
 end
 
 
-function get_var(data::Data, var::AbstractString)	
+function get_var(data::Data, var::T) where T<:AbstractString	
    VarIndex_ = findfirst(x->x==lowercase(var), lowercase.(data.head.wnames))
    isnothing(VarIndex_) && error("$(var) not found in file header variables!")
 
-   ndim = head.ndim
+   ndim = data.head.ndim
    if ndim == 1
       w = data.w[:,VarIndex_]
    elseif ndim == 2
@@ -236,7 +236,7 @@ function get_var(data::Data, var::AbstractString)
 end
 
 "Return data from input string vector."
-function get_vars(data::Data, Names::Vector{AbstractString})
+function get_vars(data::Data, Names::Vector{T}) where T<:AbstractString
 
    dict = Dict()
    for name in Names

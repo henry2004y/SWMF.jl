@@ -53,6 +53,8 @@ end
    X, Z, p = cutdata(data, "p", cut='y', cutPlaneIndex=1, plotrange=plotrange)
    @test p[1] ≈ 0.560976f0
    @test p[2] ≈ 0.53704995f0
+   vars = get_vars(data, ["p"]) 
+   @test size(vars.p) == (8,8,8) 
 end
 
 @testset "log" begin
