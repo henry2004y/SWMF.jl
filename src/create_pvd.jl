@@ -12,13 +12,18 @@ type = "Collection"
 byte_order = "LittleEndian"
 compressor = "vtkZLibDataCompressor"
 
-set_attributes(xroot; type=type, byte_order=byte_order, compressor=compressor)
+if VERSION < v"1.4" 
+   set_attributes(xroot; type=type, byte_order=byte_order, compressor=compressor)
+else
+   set_attributes(xroot; type, byte_order, compressor)
+end
 
+    
 # create the first child
 xs1 = new_child(xroot, "Collection")
 
 for filename in filenames
-   i_end   = findfirst("_n",filename)[1] - 1
+   i_end  = findfirst("_n",filename)[1] - 1
 
    second = parse(Int32, filename[i_end-1:i_end])
    minute = parse(Int32, filename[i_end-3:i_end-2])

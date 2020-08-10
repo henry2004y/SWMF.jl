@@ -44,7 +44,7 @@ filenames = [fname for fname in filenames if ~isfile(fname[1:end-3]*"vtu")]
 
 @sync @distributed for outname in filenames
    println("filename=$(outname)")
-   head, data, connectivity = readtecdata(outname, false)
+   head, data, connectivity = readtecdata(outname)
    convertVTK(head, data, connectivity, outname[1:end-4])
 end
 
