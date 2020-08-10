@@ -46,7 +46,7 @@ There you have it! Enjoy!
 
 ## Benchmark
 
-See the [benchmark](https://henry2004y.github.io/Batsrus/dev/#Benchmark-1) in the document.
+See the [benchmark](https://henry2004y.github.io/Batsrus.jl/dev/#Benchmark-1) in the document.
 
 ## Author
 
@@ -57,6 +57,6 @@ See the [benchmark](https://henry2004y.github.io/Batsrus/dev/#Benchmark-1) in th
 * All the nice guys who share their codes!
 
 [travis-url]: https://travis-ci.com/github/henry2004y/Batsrus.jl/builds
-[codecov-img]: https://codecov.io/gh/henry2004y/Batsrus/branch/master/graph/badge.svg
+[codecov-img]: https://codecov.io/gh/henry2004y/Batsrus.jl/branch/master/graph/badge.svg
 [codecov-url]: https://codecov.io/gh/henry2004y/Batsrus.jl
 [Batsrus-doc]: https://henry2004y.github.io/Batsrus.jl/dev
