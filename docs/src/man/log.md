@@ -129,9 +129,14 @@ Right now the derived quantity plots are not supported. In order to achieve this
 - [ ] A new plotting function that understands the derived data type
 
 The first one is achieved by a trick I found on discourse, which basically identifies symbols as names to members in a struct.
+This test feature is not ideal and will be dropped in later versions. 
 This looks like the Python Calculator in ParaView.
-
-This test feature is dropped for now. 
+I don't know how ParaView achieve this, but in Python it is pretty easy to parse a string and execute it as some new codes using `exec` function, as Yuxi did in his interface to the yt library.
+Julia has equivalent metaprogramming capabilities, but there are many restrictions to apply it in practice so it is generally adviced to avoid evaluating expressions inside functions during runtime.
+Another option is to create functions for derived variables.
+This is actually pretty good both in terms of performance and conciseness.
+The idea is to create a dictionary of derived variable names as keys and anonymous functions as values, and if the input string is found in the dictionary, call the corresponding function to obtain the value.
+This has been successfully tested in my new scripts for processing Vlasiator outputs, and can be directly ported here for BATSRUS.
 
 ## Extra Notes
 
