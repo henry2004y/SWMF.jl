@@ -23,9 +23,9 @@ I have a new issue coming up with the interoperability with Python. I may need t
 
 ## Units
 
-I learned from Yuxi that the YT package can handle automatic unit conversion, just like what I saw from the [Unitful.jl](https://github.com/PainterQubits/Unitful.jl) package.
-
-There is a unit package in Julia [unitful](https://github.com/PainterQubits/Unitful.jl) for handling units. Take a look at that one if you really want to solve the unit problems.
+There is a unit package in Julia [unitful](https://github.com/PainterQubits/Unitful.jl) for handling units.
+Take a look at that one if you really want to solve the unit problem.
+On top of that, [UnitfulRecipes.jl](https://github.com/jw3126/UnitfulRecipes.jl) provides integrity with [Plots.jl](http://docs.juliaplots.org/latest/).
 
 The ideas of how to make abstractions is more important than the unit conversion itself.
 
@@ -146,7 +146,7 @@ I have already made a lot of mistakes by mixing the row-major and column-major c
 
 - [x] Full coverage of tests
 - [x] PyJulia support for manipulating data directly in Python
-- [x] Derived variable support (outdated)
+- [x] Derived variable support
 - [x] General postprocessing script for concatenating and converting files.
 - [x] Replace np.meshgrid with list comprehension
 - [x] Drop the support for a long string containing several filenames; substitute by an array of strings.
