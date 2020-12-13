@@ -247,3 +247,12 @@ function get_vars(data::Data, Names::Vector{T}) where T<:AbstractString
 end
 
 Base.getproperty(p::Vars, name::Symbol) = getfield(p, :data)[String(name)]
+
+
+const variables_predefined = Dict(
+   "B" => data -> sqrt.(get_var(data, "Bx").^2 .+ get_var(data, "By").^2 .+ get_var(data, "Bz").^2),
+   "E" => data -> sqrt.(get_var(data, "Ex").^2 .+ get_var(data, "Ey").^2 .+ get_var(data, "Ez").^2),
+   "U" => data -> sqrt.(get_var(data, "Ux").^2 .+ get_var(data, "Uy").^2 .+ get_var(data, "Uz").^2),
+   #"beta" => data -> get_var(data, "P") ./ get_var(data, "B").^2 * 2μ,
+)
+
