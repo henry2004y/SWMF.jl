@@ -871,7 +871,7 @@ end
 """
 	convertBoxVTK(filename; dir=".", gridType=1, verbose=false)
 
-Convert 3D structured Tecplot data to VTK.
+Convert 3D structured IDL data to VTK.
 """
 function convertBox2VTK(filename::AbstractString; dir=".", gridType=1,
    verbose=false)
