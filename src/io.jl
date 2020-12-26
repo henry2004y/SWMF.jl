@@ -787,28 +787,7 @@ end
 
 Displaying file information for the `Data` type.
 """
-function showhead(data::Data)
-   head = data.head
-   list = data.list
-
-   println("filename = $(list.name)")
-   println("filetype = $(list.type)")
-   println("headline = $(head.headline)")
-   println("it       = $(head.it)")
-   println("time     = $(head.time)")
-   println("gencoord = $(head.gencoord)")
-   println("ndim     = $(head.ndim)")
-   println("neqpar   = $(head.neqpar)")
-   println("nw       = $(head.nw)")
-   println("nx       = $(head.nx)")
-
-   if head.neqpar > 0
-      println("parameters = $(head.eqpar)")
-      println("coord names= $(head.variables[1:head.ndim])")
-      println("var   names= $(head.variables[head.ndim+1:head.ndim+head.nw])")
-      println("param names= $(head.variables[head.ndim+head.nw+1:end])")
-   end
-end
+showhead(data::Data) = showhead(data.list, data.head)
 
 """
 	convertVTK(head, data, connectivity, filename="out")
