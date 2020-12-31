@@ -69,8 +69,16 @@ end
    filename = "data/3d_bin.dat"
    head, data, connectivity = readtecdata(filename)
    @test maximum(connectivity) ≤ head[:nNode] # check if it's read correctly
-   convertVTK(head, data, connectivity)
+   convertTECtoVTU(head, data, connectivity)
    sha_str = bytes2hex(open(sha1, "out.vtu"))
    @test sha_str == "5b04747666542d802357dec183177f757754a254"
    rm("out.vtu")
+
+   filetag = "data/3d_mhd_amr/3d__mhd_1_t00000000_n00000000"
+   run(`tar -C data -zxf data/3d_mhd_amr.tar.gz`)
+   batl = Batl(readhead(filetag*".info"), readtree(filetag)...)
+   connectivity = getConnectivity(batl)
+   sha_str = bytes2hex(sha256(string(connectivity)))
+   @test sha_str == "c6c5a65a46d86a9ba4096228c1516f89275e45e295cd305eb70c281a770ede74"
+   rm("data/3d_mhd_amr", recursive=true)
 end

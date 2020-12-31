@@ -1,6 +1,6 @@
 # All the IO related APIs.
 
-export readdata, readlogdata, readtecdata, showhead, convertVTK, convertBox2VTK
+export readdata, readlogdata, readtecdata, showhead
 
 const tag = 4 # Fortran record tag
 
@@ -496,13 +496,13 @@ function getascii!(x, w, fileID::IOStream, filehead::NamedTuple)
          w[ix,:] .= temp[2:end]
       end
    elseif ndim == 2 # 2D
-      for i = 1:filehead.nx[1], j = 1:filehead.nx[2]
+      for j = 1:filehead.nx[2], i = 1:filehead.nx[1]
          temp = parse.(Float64, split(readline(fileID)))
          x[i,j,:] .= temp[1:2]
          w[i,j,:] .= temp[3:end]
       end
    elseif ndim == 3 # 3D
-      for i = 1:filehead.nx[1], j = 1:filehead.nx[2], k = 1:filehead.nx[3]
+      for k = 1:filehead.nx[3], j = 1:filehead.nx[2], i = 1:filehead.nx[1]
          temp = parse.(Float64, split(readline(fileID)))
          x[i,j,k,:] .= temp[1:3]
          w[i,j,k,:] .= temp[4:end]
@@ -788,134 +788,3 @@ end
 Displaying file information for the `Data` type.
 """
 showhead(data::Data) = showhead(data.list, data.head)
-
-"""
-	convertVTK(head, data, connectivity, filename="out")
-
-Convert unstructured Tecplot data to VTK. Note that if using voxel type data
-in VTK, the connectivity sequence is different from Tecplot.
-Note that the 3D connectivity sequence in Tecplot is the same with the
-`hexahedron` type in VTK, but different with the `voxel` type.
-The 2D connectivity sequence is the same as the `quad` type, but different with
-the `pixel` type.
-For example, in 3D the index conversion is:
-```
-# PLT to VTK voxel index_ = [1 2 4 3 5 6 8 7]
-for i = 1:2
-   connectivity = swaprows!(connectivity, 4*i-1, 4*i)
-end
-```
-"""
-function convertVTK(head, data, connectivity, filename="out")
-
-   nVar = length(head.variables)
-   points = @view data[1:3,:]
-   cells = Vector{MeshCell{VTKCellType,Array{Int32,1}}}(undef,head.nCell)
-
-   if head.nDim == 3
-      @inbounds for i = 1:head.nCell
-         cells[i] = MeshCell(VTKCellTypes.VTK_HEXAHEDRON, connectivity[:,i])
-      end
-   elseif head.nDim == 2
-      @inbounds for i = 1:head.nCell
-         cells[i] = MeshCell(VTKCellTypes.VTK_QUAD, connectivity[:,i])
-      end
-   end
-
-   vtkfile = vtk_grid(filename, points, cells)
-
-   for ivar = 4:nVar
-      if occursin("_x",head.variables[ivar]) # vector
-         var1 = @view data[ivar,:]
-         var2 = @view data[ivar+1,:]
-         var3 = @view data[ivar+2,:]
-         namevar = replace(head.variables[ivar], "_x"=>"")
-         vtk_point_data(vtkfile, (var1, var2, var3), namevar)
-      elseif occursin(r"(_y|_z)",head.variables[ivar])
-         continue
-      else
-         var = @view data[ivar,:]
-         vtk_point_data(vtkfile, var, head.variables[ivar])
-      end
-   end
-
-   # Add meta data from Tecplot AUXDATA
-   for i in 1:length(head.auxdata)
-      vtkfile[head.auxdataname[i],VTKFieldData()] = head.auxdata[i]
-   end
-
-   outfiles = vtk_save(vtkfile)
-end
-
-"""
-	convertBoxVTK(filename; dir=".", gridType=1, verbose=false)
-
-Convert 3D structured IDL data to VTK.
-"""
-function convertBox2VTK(filename::AbstractString; dir=".", gridType=1,
-   verbose=false)
-
-   data = readdata(filename, dir=dir)
-
-   nVar = length(data.head.wnames)
-
-   outname = filename[1:end-4]
-
-   if gridType == 1 # rectilinear grid
-      x = @view data.x[:,1,1,1]
-      y = @view data.x[1,:,1,2]
-      z = @view data.x[1,1,:,3]
-
-      outfiles = vtk_grid(outname, x,y,z) do vtk
-         for ivar = 1:nVar
-            if data.head.wnames[ivar][end] == 'x' # vector
-               var1 = @view data.w[:,:,:,ivar]
-               var2 = @view data.w[:,:,:,ivar+1]
-               var3 = @view data.w[:,:,:,ivar+2]
-               namevar = data.head.wnames[ivar][1:end-1]
-               vtk_point_data(vtk, (var1, var2, var3), namevar)
-            elseif data.head.wnames[ivar][end] in ('y','z')
-               continue
-            else
-               var = @view data.w[:,:,:,ivar]
-               vtk_point_data(vtk, var, data.head.wnames[ivar])
-            end
-         end
-      end
-   elseif gridType == 2 # structured grid
-      xyz = permutedims(data.x, [4,1,2,3])
-
-      outfiles = vtk_grid(outname, xyz) do vtk
-         for ivar = 1:nVar
-            if data.head.wnames[ivar][end] == 'x' # vector
-               var1 = @view data.w[:,:,:,ivar]
-               var2 = @view data.w[:,:,:,ivar+1]
-               var3 = @view data.w[:,:,:,ivar+2]
-               namevar = data.head.wnames[ivar][1:end-1]
-               vtk_point_data(vtk, (var1, var2, var3), namevar)
-            elseif data.head.wnames[ivar][end] in ('y','z')
-               continue
-            else
-               var = @view data.w[:,:,:,ivar]
-               vtk_point_data(vtk, var, data.head.wnames[ivar])
-            end
-         end
-      end
-   elseif gridType == 3 # unstructured grid, not finished
-      @error "Not implemented yet!"
-   end
-   verbose && @info "$(filename) finished conversion."
-end
-
-
-function swaprows!(X, i, j)
-   m, n = size(X)
-   if (1 ≤ i ≤ n) && (1 ≤ j ≤ n)
-      @inbounds @simd for k = 1:n
-         X[i,k],X[j,k] = X[j,k],X[i,k]
-      end
-      return X
-   else
-      throw(BoundsError())
-   end
-end

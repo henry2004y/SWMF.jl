@@ -3,7 +3,7 @@ module Batsrus
 #
 # Hongyang Zhou, hyzhou@umich.edu
 
-using Printf, WriteVTK
+using Printf
 
 export Data, Vars
 
@@ -39,5 +39,6 @@ end
 
 include("io.jl")
 include("select.jl")
+include("vtk.jl")
 
 end

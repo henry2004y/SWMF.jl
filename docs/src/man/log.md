@@ -52,6 +52,15 @@ Currently, BATSRUS output contains only cell center coordinates and cell center 
 
 The simple multiblock VTK format conversion can only deal with data within a block, but it cannot figure out the connectivities between neighboring blocks. To fill the gap between blocks, we have to retrieve the tree data stored in `.tree` files. This requires a in-depth understanding of the grid tree structure in BATSRUS, and it took me a whole week to think, write and debug the code!
 
+Information contained in `iTree_IA`:
+✓ the status of the node (used, unused, to be refined, to be coarsened, etc.);
+✓ the current, the maximum allowed and minimum allowed AMR levels for this node;
+✓ the three integer coordinates with respect to the whole grid;
+✓ the index of the parent node (if any);
+✓ the indexes of the children nodes (if any);
+✓ the processor index where the block is stored for active nodes;
+✓ the local block index for active nodes.
+
 Basically, it requires several steps:
 1. Obtain the neighbor block indexes.
 2. Obtain the relative AMR level between neighbor blocks.
@@ -67,8 +76,7 @@ Several issues worth noticing:
 * 2D unformatted outputs (with `dxPlot<0`) can generate correct point coordinates, but the output points in postprocessing are sorted based on (x+e*y+e^2*z) to allow removing duplicate points. I again don't understand the reason behind this. This means that it is literally impossible to figure out the original cell ordering, and impossible to convert to 2D VTU format (unless you construct some new connectivities based on triangulation)!
 * 3D unformatted output as stored as it is.
 * The simulation is typically done with multiple MPI processes. In the tree structure, each node only records the MPI process local block index. What makes it more complicated is that the local block indexes on a given MPI process may have skipped numbers because they are not in the physical simulation domain. This means that in order to get the true global block indexes, one needs to count how many blocks are used on all MPI processes with lower ranks, and also the order of the current node based on local block index on this MPI process.
-
-My first version without bug is very slow because of all the requirements above. For a 300 MB file with around 5 million cells, it needs about 50 hours to convert. Let me see if I can speed it up.
+* It would be pretty difficult to count the number of elements in the connectivity list. Appending to an array is a very expensive operation: counting the elements in the first loop, preallocating the array and then repeat the same computation to fill in the list results in over 1000 times speedup.
 
 ### Ordering of connectivity
 
