@@ -30,7 +30,7 @@ Pkg.add("Batsrus")
 
 ## Usage
 
-See the [examples](https://henry2004y.github.io/Batsrus/dev/man/examples/).
+See the [examples](https://henry2004y.github.io/Batsrus.jl/dev/man/examples/).
 
 ### Using from Python
 
