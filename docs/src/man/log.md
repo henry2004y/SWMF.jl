@@ -48,7 +48,27 @@ By default the file size will be reduced with compression level 6, but the actua
 
 For the plotting, streamline tracing and particle tracing, a common problem is the grid and related interpolation process. I am envisioning a more general approach to deal with block-based and unstructured grid to provide fundamental support for all of these.
 
-Currently, BATSRUS output contains only cell center grid and cell center values. The multiblock VTK format conversion works, but it is incorrectly recognized as node center data. An ideal way is to output the original node coordinates and corresponding cell center values.
+Currently, BATSRUS output contains only cell center coordinates and cell center values (referring as `tcp` in `PARAM.in`), or node coordinates and interpolated nodal values (referring as `tec`). It is recommended to save in the `tcp` format to avoid interpolation. In principle VTK also supports the combination of node coordinates and cell center values, but it is not necessary here.
+
+The simple multiblock VTK format conversion can only deal with data within a block, but it cannot figure out the connectivities between neighboring blocks. To fill the gap between blocks, we have to retrieve the tree data stored in `.tree` files. This requires a in-depth understanding of the grid tree structure in BATSRUS, and it took me a whole week to think, write and debug the code!
+
+Basically, it requires several steps:
+1. Obtain the neighbor block indexes.
+2. Obtain the relative AMR level between neighbor blocks.
+3. Calculate the global cell indexes.
+4. Fill in the connectivity list.
+
+Several issues worth noticing:
+* The blocks are load balanced in Morton curve ordering.
+* Rules are needed to decide which block is in charge of writing the connectivities. Following the `ModWriteTecplot` implementation,
+  * connectivities between blocks on the same AMR level are written by the left neighbors.
+  * connectivities between blocks on different AMR levels are written by the finer blocks. This choice may simplify the logic in writing.
+* 2D formatted outputs (with `dxPlot⩾0`) will generate duplicate points for 2D runs after postprocessing. I don't fully understand why.
+* 2D unformatted outputs (with `dxPlot<0`) can generate correct point coordinates, but the output points in postprocessing are sorted based on (x+e*y+e^2*z) to allow removing duplicate points. I again don't understand the reason behind this. This means that it is literally impossible to figure out the original cell ordering, and impossible to convert to 2D VTU format (unless you construct some new connectivities based on triangulation)!
+* 3D unformatted output as stored as it is.
+* The simulation is typically done with multiple MPI processes. In the tree structure, each node only records the MPI process local block index. What makes it more complicated is that the local block indexes on a given MPI process may have skipped numbers because they are not in the physical simulation domain. This means that in order to get the true global block indexes, one needs to count how many blocks are used on all MPI processes with lower ranks, and also the order of the current node based on local block index on this MPI process.
+
+My first version without bug is very slow because of all the requirements above. For a 300 MB file with around 5 million cells, it needs about 50 hours to convert. Let me see if I can speed it up.
 
 ### Ordering of connectivity
 
