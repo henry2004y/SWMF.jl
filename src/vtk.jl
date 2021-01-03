@@ -38,7 +38,7 @@ const coarsened_  = Int8( 5) # coarsened parent block
 const maxLevel = 30
 
 # The maximum integer coordinate for a given level below root nodes
-const maxCoord_I = [2^i for i in 0:maxLevel]
+const maxCoord_I = Int32[2^i for i in 0:maxLevel]
 
 "BATSRUS output standalone header information."
 struct Head
@@ -483,7 +483,11 @@ end
 function ibits(i, pos, len)
    # Treat it as 32 bits integer as in BATL.
    ds = digits(i, base=2, pad=32)[pos+1:pos+len]
-   return sum([ds[k]*2^(k-1) for k = 1:length(ds)])
+   s = zero(eltype(i))
+   for val in ds
+      s = s * 2 + val
+   end
+   return s
 end
 
 
