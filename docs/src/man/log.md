@@ -53,13 +53,13 @@ Currently, BATSRUS output contains only cell center coordinates and cell center 
 The simple multiblock VTK format conversion can only deal with data within a block, but it cannot figure out the connectivities between neighboring blocks. To fill the gap between blocks, we have to retrieve the tree data stored in `.tree` files. This requires a in-depth understanding of the grid tree structure in BATSRUS, and it took me a whole week to think, write and debug the code!
 
 Information contained in `iTree_IA`:
-✓ the status of the node (used, unused, to be refined, to be coarsened, etc.);
-✓ the current, the maximum allowed and minimum allowed AMR levels for this node;
-✓ the three integer coordinates with respect to the whole grid;
-✓ the index of the parent node (if any);
-✓ the indexes of the children nodes (if any);
-✓ the processor index where the block is stored for active nodes;
-✓ the local block index for active nodes.
+* the status of the node (used, unused, to be refined, to be coarsened, etc.);
+* the current, the maximum allowed and minimum allowed AMR levels for this node;
+* the three integer coordinates with respect to the whole grid;
+* the index of the parent node (if any);
+* the indexes of the children nodes (if any);
+* the processor index where the block is stored for active nodes;
+* the local block index for active nodes.
 
 Basically, it requires several steps:
 1. Obtain the neighbor block indexes.
@@ -73,7 +73,7 @@ Several issues worth noticing:
   * connectivities between blocks on the same AMR level are written by the left neighbors.
   * connectivities between blocks on different AMR levels are written by the finer blocks. This choice may simplify the logic in writing.
 * 2D formatted outputs (with `dxPlot⩾0`) will generate duplicate points for 2D runs after postprocessing. I don't fully understand why.
-* 2D unformatted outputs (with `dxPlot<0`) can generate correct point coordinates, but the output points in postprocessing are sorted based on (x+e*y+e^2*z) to allow removing duplicate points. I again don't understand the reason behind this. This means that it is literally impossible to figure out the original cell ordering, and impossible to convert to 2D VTU format (unless you construct some new connectivities based on triangulation)!
+* 2D unformatted outputs (with `dxPlot<0`) can generate correct point coordinates, but the output points in postprocessing are sorted based on `x+e*y+e^2*z` to allow removing duplicate points. This is mostly useful for 2D cuts of 3D simulations where duplicate points are possible to exist, and should be merged/averaged. This also means that it is literally impossible to figure out the original cell ordering, and impossible to convert to 2D VTU format (unless you construct some new connectivities based on triangulation)! However, it guarantees that the cut outputs from parallel runs are identical.
 * 3D unformatted output as stored as it is.
 * The simulation is typically done with multiple MPI processes. In the tree structure, each node only records the MPI process local block index. What makes it more complicated is that the local block indexes on a given MPI process may have skipped numbers because they are not in the physical simulation domain. This means that in order to get the true global block indexes, one needs to count how many blocks are used on all MPI processes with lower ranks, and also the order of the current node based on local block index on this MPI process.
 * It would be pretty difficult to count the number of elements in the connectivity list. Appending to an array is a very expensive operation: counting the elements in the first loop, preallocating the array and then repeat the same computation to fill in the list results in over 1000 times speedup.
