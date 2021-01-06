@@ -1,7 +1,7 @@
 name = "Batsrus"
 uuid = "e74ebddf-6ac1-4047-a0e5-c32c99e57753"
 authors = ["hyzhou <hyzhou@umich.edu>"]
-version = "0.2.2"
+version = "0.2.3"
 
 [deps]
 FortranFiles = "c58ffaec-ab22-586d-bfc5-781a99fd0b10"

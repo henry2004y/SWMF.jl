@@ -815,7 +815,7 @@ function getConnectivity(batl::Batl)
             # initial cell index
             iCell = nI*nJ*nK*(nBlockBefore + iBlock - 1)
 
-            for k = 1:nK, j = 1:nJ, i = 1:nI
+            @inbounds for k = 1:nK, j = 1:nJ, i = 1:nI
                iCell += 1
                iCell_G[i+1,j+1,k+1] = iCell
             end
@@ -914,7 +914,7 @@ function fillCellNeighbors!(batl, iCell_G, DiLevelNei_III, iNodeNei_III, nBlock_
    if DiLevelNei_III[1,2,2] == 1
       neiBlock = nodeToGlobalBlock(batl, iNodeNei_III[1,2,2], nBlock_P)
 
-      for k = 1:nK, j = 1:nJ
+      @inbounds for k = 1:nK, j = 1:nJ
          iSibling = getSibling(iNodeNei_III, iTree_IA)
 
          if iSibling == 1
@@ -937,13 +937,13 @@ function fillCellNeighbors!(batl, iCell_G, DiLevelNei_III, iNodeNei_III, nBlock_
    if DiLevelNei_III[3,2,2] == 0
       neiBlock = nodeToGlobalBlock(batl, iNodeNei_III[4,3,3], nBlock_P)
 
-      for k = 1:nK, j = 1:nJ
+      @inbounds for k = 1:nK, j = 1:nJ
          iCell_G[end,j+1,k+1] = nIJK*(neiBlock-1) + 1 + nI*(j-1) + nIJ*(k-1)
       end
    elseif DiLevelNei_III[3,2,2] == 1
       neiBlock = nodeToGlobalBlock(batl, iNodeNei_III[4,3,3], nBlock_P)
 
-      for k = 1:nK, j = 1:nJ
+      @inbounds for k = 1:nK, j = 1:nJ
          iSibling = getSibling(iNodeNei_III, iTree_IA)
 
          if iSibling == 2
@@ -966,7 +966,7 @@ function fillCellNeighbors!(batl, iCell_G, DiLevelNei_III, iNodeNei_III, nBlock_
    if DiLevelNei_III[2,1,2] == 1
       neiBlock = nodeToGlobalBlock(batl, iNodeNei_III[2,1,2], nBlock_P)
 
-      for k = 1:nK, i = 1:nI
+      @inbounds for k = 1:nK, i = 1:nI
          iSibling = getSibling(iNodeNei_III, iTree_IA)
 
          if iSibling == 1
@@ -989,13 +989,13 @@ function fillCellNeighbors!(batl, iCell_G, DiLevelNei_III, iNodeNei_III, nBlock_
    if DiLevelNei_III[2,3,2] == 0
       neiBlock = nodeToGlobalBlock(batl, iNodeNei_III[3,4,3], nBlock_P)
 
-      for k = 1:nK, i = 1:nI
+      @inbounds for k = 1:nK, i = 1:nI
          iCell_G[i+1,end,k+1] = nIJK*(neiBlock-1) + i + nIJ*(k-1)
       end
    elseif DiLevelNei_III[2,3,2] == 1
       neiBlock = nodeToGlobalBlock(batl, iNodeNei_III[3,4,3], nBlock_P)
 
-      for k = 1:nK, i = 1:nI
+      @inbounds for k = 1:nK, i = 1:nI
          iSibling = getSibling(iNodeNei_III, iTree_IA)
 
          if iSibling == 3
@@ -1018,7 +1018,7 @@ function fillCellNeighbors!(batl, iCell_G, DiLevelNei_III, iNodeNei_III, nBlock_
    if DiLevelNei_III[2,2,1] == 1
       neiBlock = nodeToGlobalBlock(batl, iNodeNei_III[2,2,1], nBlock_P)
 
-      for j = 1:nJ, i = 1:nI
+      @inbounds for j = 1:nJ, i = 1:nI
          iSibling = getSibling(iNodeNei_III, iTree_IA)
 
          if iSibling == 1
@@ -1041,13 +1041,13 @@ function fillCellNeighbors!(batl, iCell_G, DiLevelNei_III, iNodeNei_III, nBlock_
    if DiLevelNei_III[2,2,3] == 0
       neiBlock = nodeToGlobalBlock(batl, iNodeNei_III[3,3,4], nBlock_P)
 
-      for j = 1:nJ, i = 1:nI
+      @inbounds for j = 1:nJ, i = 1:nI
          iCell_G[i+1,j+1,end] = nIJK*(neiBlock-1) + i + nI*(j-1)
       end
    elseif DiLevelNei_III[2,2,3] == 1
       neiBlock = nodeToGlobalBlock(batl, iNodeNei_III[3,3,4], nBlock_P)
 
-      for j = 1:nJ, i = 1:nI
+      @inbounds for j = 1:nJ, i = 1:nI
          iSibling = getSibling(iNodeNei_III, iTree_IA)
 
          if iSibling == 5
@@ -1072,7 +1072,7 @@ function fillCellNeighbors!(batl, iCell_G, DiLevelNei_III, iNodeNei_III, nBlock_
    if DiLevelNei_III[2,1,1] == 0
       neiBlock = nodeToGlobalBlock(batl, iNodeNei_III[2,1,1], nBlock_P)
 
-      for i = 1:nI
+      @inbounds for i = 1:nI
          iCell_G[i+1,1,1] = nIJK*neiBlock - nI + i
       end
    elseif DiLevelNei_III[2,1,1] in (1,2)
@@ -1083,32 +1083,32 @@ function fillCellNeighbors!(batl, iCell_G, DiLevelNei_III, iNodeNei_III, nBlock_
       iAMR = 2*DiLevelNei_III[2,1,1]
 
       if iSibling == 1
-         for i = 1:nI
+         @inbounds for i = 1:nI
             iCell_G[i+1,1,1] = nIJK*neiBlock -
                nI + 1 + fld(i-1, iAMR)
          end
       elseif iSibling == 2
-         for i = 1:nI
+         @inbounds for i = 1:nI
             iCell_G[i+1,1,1] = nIJK*neiBlock -
                nI/2 + 1 + fld(i-1, iAMR)
          end
       elseif iSibling == 3
-         for i = 1:nI
+         @inbounds for i = 1:nI
             iCell_G[i+1,1,1] = nIJK*neiBlock -
                nIJ/2 - nI + 1 + fld(i-1, iAMR)
          end
       elseif iSibling == 4
-         for i = 1:nI
+         @inbounds for i = 1:nI
             iCell_G[i+1,1,1] = nIJK*neiBlock -
                nIJ/2 - nI/2 + 1 + fld(i-1, iAMR)
          end
       elseif iSibling == 5
-         for i = 1:nI
+         @inbounds for i = 1:nI
             iCell_G[i+1,1,1] = nIJK*(neiBlock-1) +
                nIJ*(nK/2-1) + nI*(nJ-1) + 1 + fld(i-1, iAMR)
          end
       elseif iSibling == 6
-         for i = 1:nI
+         @inbounds for i = 1:nI
             iCell_G[i+1,1,1] = nIJK*(neiBlock-1) +
                nIJ*(nK/2-1) + nI*(nJ-1) + nI/2 + 1 + fld(i-1, iAMR)
          end
@@ -1119,7 +1119,7 @@ function fillCellNeighbors!(batl, iCell_G, DiLevelNei_III, iNodeNei_III, nBlock_
    if DiLevelNei_III[2,3,1] == 0
       neiBlock = nodeToGlobalBlock(batl, iNodeNei_III[2,4,1], nBlock_P)
 
-      for i = 1:nI
+      @inbounds for i = 1:nI
          iCell_G[i+1,end,1] = nIJK*neiBlock - nIJ + i
       end
    elseif DiLevelNei_III[2,3,1] in (1,2)
@@ -1130,32 +1130,32 @@ function fillCellNeighbors!(batl, iCell_G, DiLevelNei_III, iNodeNei_III, nBlock_
       iAMR = 2*DiLevelNei_III[2,3,1]
 
       if iSibling == 1
-         for i = 1:nI
+         @inbounds for i = 1:nI
             iCell_G[i+1,end,1] = nIJK*neiBlock -
                nIJ/2 + 1 + fld(i-1, iAMR)
          end
       elseif iSibling == 2
-         for i = 1:nI
+         @inbounds for i = 1:nI
             iCell_G[i+1,end,1] = nIJK*neiBlock -
                nIJ/2 + nI/2 + 1 + fld(i-1, iAMR)
          end
       elseif iSibling == 3
-         for i = 1:nI
+         @inbounds for i = 1:nI
             iCell_G[i+1,end,1] = nIJK*neiBlock -
                nIJ + 1 + fld(i-1, iAMR)
          end
       elseif iSibling == 4
-         for i = 1:nI
+         @inbounds for i = 1:nI
             iCell_G[i+1,end,1] = nIJK*neiBlock -
                nIJ + nI/2 + 1 + fld(i-1, iAMR)
          end
       elseif iSibling == 7
-         for i = 1:nI
+         @inbounds for i = 1:nI
             iCell_G[i+1,end,1] = nIJK*(neiBlock-1) +
                nIJ*(nK/2-1) + 1 + fld(i-1, iAMR)
          end
       elseif iSibling == 8
-         for i = 1:nI
+         @inbounds for i = 1:nI
             iCell_G[i+1,end,1] = nIJK*(neiBlock-1) +
                nIJ*(nK/2-1) + nI/2 + 1 + fld(i-1, iAMR)
          end
@@ -1166,7 +1166,7 @@ function fillCellNeighbors!(batl, iCell_G, DiLevelNei_III, iNodeNei_III, nBlock_
    if DiLevelNei_III[2,1,3] == 0
       neiBlock = nodeToGlobalBlock(batl, iNodeNei_III[2,1,4], nBlock_P)
    
-      for i = 1:nI
+      @inbounds for i = 1:nI
          iCell_G[i+1,1,end] = nIJK*(neiBlock-1) + nI*(nJ-1) + i
       end      
    elseif DiLevelNei_III[2,1,3] in (1,2)
@@ -1177,32 +1177,32 @@ function fillCellNeighbors!(batl, iCell_G, DiLevelNei_III, iNodeNei_III, nBlock_
       iAMR = 2*DiLevelNei_III[2,1,3]
 
       if iSibling == 1
-         for i = 1:nI
+         @inbounds for i = 1:nI
             iCell_G[i+1,1,end] = nIJK*(neiBlock-1) +
                nIJK/2 + nI*(nJ-1) + 1 + fld(i-1, iAMR)
          end
       elseif iSibling == 2
-         for i = 1:nI
+         @inbounds for i = 1:nI
             iCell_G[i+1,1,end] = nIJK*(neiBlock-1) +
                nIJK/2 + nI*(nJ-1) + nI/2 + 1 + fld(i-1, iAMR)
          end
       elseif iSibling == 5
-         for i = 1:nI
+         @inbounds for i = 1:nI
             iCell_G[i+1,1,end] = nIJK*(neiBlock-1) +
                nI*(nJ-1) + 1 + fld(i-1, iAMR)
          end
       elseif iSibling == 6
-         for i = 1:nI
+         @inbounds for i = 1:nI
             iCell_G[i+1,1,end] = nIJK*(neiBlock-1) +
                nI*(nJ-1) + nI/2 + 1 + fld(i-1, iAMR)
          end
       elseif iSibling == 7
-         for i = 1:nI
+         @inbounds for i = 1:nI
             iCell_G[i+1,1,end] = nIJK*(neiBlock-1) +
                nI*(nJ/2-1) + 1 + fld(i-1, iAMR)
          end
       elseif iSibling == 8
-         for i = 1:nI
+         @inbounds for i = 1:nI
             iCell_G[i+1,1,end] = nIJK*(neiBlock-1) +
                nI*(nJ/2-1) + nI/2 + 1 + fld(i-1, iAMR)
          end
@@ -1212,7 +1212,7 @@ function fillCellNeighbors!(batl, iCell_G, DiLevelNei_III, iNodeNei_III, nBlock_
    # edge 4
    if DiLevelNei_III[2,3,3] == 0
       neiBlock = nodeToGlobalBlock(batl, iNodeNei_III[2,4,4], nBlock_P)
-      for i = 1:nI
+      @inbounds for i = 1:nI
          iCell_G[i+1,end,end] = nIJK*(neiBlock-1) + i
       end
    elseif DiLevelNei_III[2,3,3] in (1,2)
@@ -1223,32 +1223,32 @@ function fillCellNeighbors!(batl, iCell_G, DiLevelNei_III, iNodeNei_III, nBlock_
       iAMR = 2^DiLevelNei_III[2,3,3]
    
       if iSibling == 3
-         for i = 1:nI
+         @inbounds for i = 1:nI
             iCell_G[i+1,end,end] = nIJK*(neiBlock-1) +
                nIJK/2 + 1 + fld(i-1, iAMR)
          end
       elseif iSibling == 4
-         for i = 1:nI
+         @inbounds for i = 1:nI
             iCell_G[i+1,end,end] = nIJK*(neiBlock-1) +
                nIJK/2 + nI/2 + 1 + fld(i-1, iAMR)
          end
       elseif iSibling == 5
-         for i = 1:nI
+         @inbounds for i = 1:nI
             iCell_G[i+1,end,end] = nIJK*(neiBlock-1) +
                nIJ/2 + 1 + fld(i-1, iAMR)
          end
       elseif iSibling == 6
-         for i = 1:nI
+         @inbounds for i = 1:nI
             iCell_G[i+1,end,end] = nIJK*(neiBlock-1) +
                nIJ/2 + nI/2 + 1 + fld(i-1, iAMR)
          end
       elseif iSibling == 7
-         for i = 1:nI
+         @inbounds for i = 1:nI
             iCell_G[i+1,end,end] = nIJK*(neiBlock-1) +
                1 + fld(i-1, iAMR)
          end
       elseif iSibling == 8
-         for i = 1:nI
+         @inbounds for i = 1:nI
             iCell_G[i+1,end,end] = nIJK*(neiBlock-1) +
                nI/2 + 1 + fld(i-1, iAMR)
          end
@@ -1259,7 +1259,7 @@ function fillCellNeighbors!(batl, iCell_G, DiLevelNei_III, iNodeNei_III, nBlock_
    if DiLevelNei_III[1,2,1] == 0
       neiBlock = nodeToGlobalBlock(batl, iNodeNei_III[1,2,1], nBlock_P)
 
-      for j = 1:nJ
+      @inbounds for j = 1:nJ
          iCell_G[1,j+1,1] = nIJK*neiBlock - nIJ + nI*j
       end
    elseif DiLevelNei_III[1,2,1] in (1,2)
@@ -1270,32 +1270,32 @@ function fillCellNeighbors!(batl, iCell_G, DiLevelNei_III, iNodeNei_III, nBlock_
       iAMR = 2^DiLevelNei_III[1,2,1]
    
       if iSibling == 1
-         for j = 1:nJ
+         @inbounds for j = 1:nJ
             iCell_G[1,j+1,1] = nIJK*neiBlock -
                nIJ + nI*(1 + fld(j-1,iAMR))
          end
       elseif iSibling == 2
-         for j = 1:nJ
+         @inbounds for j = 1:nJ
             iCell_G[1,j+1,1] = nIJK*neiBlock -
                nIJ + nI/2 + nI*fld(j-1,iAMR)
          end
       elseif iSibling == 3
-         for j = 1:nJ
+         @inbounds for j = 1:nJ
             iCell_G[1,j+1,1] = nIJK*neiBlock -
                nIJ/2 + nI*(1 + fld(j-1,iAMR))
          end
       elseif iSibling == 4
-         for j = 1:nJ
+         @inbounds for j = 1:nJ
             iCell_G[1,j+1,1] = nIJK*neiBlock -
                nIJ/2 + nI/2 + nI*fld(j-1,iAMR)
          end
       elseif iSibling == 5
-         for j = 1:nJ
+         @inbounds for j = 1:nJ
             iCell_G[1,j+1,1] = nIJK*neiBlock -
                nIJ*(nK/2+1) + nI*(1 + fld(j-1,iAMR))
          end
       elseif iSibling == 7
-         for j = 1:nJ
+         @inbounds for j = 1:nJ
             iCell_G[1,j+1,1] = nIJK*neiBlock -
                nIJ*(nK/2+1) + nIJ/2 + nI*(1 + fld(j-1,iAMR))
          end
@@ -1306,7 +1306,7 @@ function fillCellNeighbors!(batl, iCell_G, DiLevelNei_III, iNodeNei_III, nBlock_
    if DiLevelNei_III[3,2,1] == 0
       neiBlock = nodeToGlobalBlock(batl, iNodeNei_III[4,2,1], nBlock_P)
 
-      for j = 1:nJ
+      @inbounds for j = 1:nJ
          iCell_G[end,j+1,1] = nIJK*neiBlock - nIJ + 1 + nI*(j-1)
       end
    elseif DiLevelNei_III[3,2,1] in (1,2)
@@ -1317,32 +1317,32 @@ function fillCellNeighbors!(batl, iCell_G, DiLevelNei_III, iNodeNei_III, nBlock_
       iAMR = 2^DiLevelNei_III[3,2,1]
 
       if iSibling == 1
-         for j = 1:nJ
+         @inbounds for j = 1:nJ
             iCell_G[end,j+1,1] = nIJK*neiBlock -
                nIJ + nI/2 + 1 + nI*fld(j-1,iAMR)
          end
       elseif iSibling == 2
-         for j = 1:nJ
+         @inbounds for j = 1:nJ
             iCell_G[end,j+1,1] = nIJK*neiBlock -
                nIJ + 1 + nI*fld(j-1,iAMR)
          end
       elseif iSibling == 3
-         for j = 1:nJ
+         @inbounds for j = 1:nJ
             iCell_G[end,j+1,1] = nIJK*neiBlock -
                nIJ/2 + nI/2 + 1 + nI*fld(j-1,iAMR)
          end
       elseif iSibling == 4
-         for j = 1:nJ
+         @inbounds for j = 1:nJ
             iCell_G[end,j+1,1] = nIJK*neiBlock -
                nIJ/2 + 1 + nI*fld(j-1,iAMR)
          end
       elseif iSibling == 6
-         for j = 1:nJ
+         @inbounds for j = 1:nJ
             iCell_G[end,j+1,1] = nIJK*(neiBlock-1) +
                nIJ*(nK/2-1) + 1 + nI*fld(j-1,iAMR)
          end
       elseif iSibling == 8
-         for j = 1:nJ
+         @inbounds for j = 1:nJ
             iCell_G[end,j+1,1] = nIJK*(neiBlock-1) +
                nIJ*(nK/2-1) + nIJ/2 + 1 + nI*fld(j-1,iAMR)
          end
@@ -1353,7 +1353,7 @@ function fillCellNeighbors!(batl, iCell_G, DiLevelNei_III, iNodeNei_III, nBlock_
    if DiLevelNei_III[1,2,3] == 0
       neiBlock = nodeToGlobalBlock(batl, iNodeNei_III[1,2,4], nBlock_P)
    
-      for j = 1:nJ
+      @inbounds for j = 1:nJ
          iCell_G[1,j+1,end] = nIJK*(neiBlock-1) + nI*j
       end
    elseif DiLevelNei_III[1,2,3] in (1,2)
@@ -1364,32 +1364,32 @@ function fillCellNeighbors!(batl, iCell_G, DiLevelNei_III, iNodeNei_III, nBlock_
       iAMR = 2^DiLevelNei_III[1,2,3]
 
       if iSibling == 1
-         for j = 1:nJ
+         @inbounds for j = 1:nJ
             iCell_G[1,j+1,end] = nIJK*(neiBlock-1) +
                nIJK/2 + nI*(1 + fld(j-1,iAMR))
          end
       elseif iSibling == 3
-         for j = 1:nJ
+         @inbounds for j = 1:nJ
             iCell_G[1,j+1,end] = nIJK*(neiBlock-1) +
                nIJK/2 + nIJ/2 + nI*(1 + fld(j-1,iAMR))
          end
       elseif iSibling == 5
-         for j = 1:nJ
+         @inbounds for j = 1:nJ
             iCell_G[1,j+1,end] = nIJK*(neiBlock-1) +
                nI*(1 + fld(j-1,iAMR))
          end
       elseif iSibling == 6
-         for j = 1:nJ
+         @inbounds for j = 1:nJ
             iCell_G[1,j+1,end] = nIJK*(neiBlock-1) +
                nI*(0.5 + fld(j-1,iAMR))
          end
       elseif iSibling == 7
-         for j = 1:nJ
+         @inbounds for j = 1:nJ
             iCell_G[1,j+1,end] = nIJK*(neiBlock-1) +
                nIJ/2 + nI*(1 + fld(j-1,iAMR))
          end
       elseif iSibling == 8
-         for j = 1:nJ
+         @inbounds for j = 1:nJ
             iCell_G[1,j+1,end] = nIJK*(neiBlock-1) +
                nIJ/2 + nI*(0.5 + fld(j-1,iAMR))
          end
@@ -1399,7 +1399,7 @@ function fillCellNeighbors!(batl, iCell_G, DiLevelNei_III, iNodeNei_III, nBlock_
    # edge 8
    if DiLevelNei_III[3,2,3] == 0
       neiBlock = nodeToGlobalBlock(batl, iNodeNei_III[4,2,4], nBlock_P)
-      for j = 1:nJ
+      @inbounds for j = 1:nJ
          iCell_G[end,j+1,end] = nIJK*(neiBlock-1) + 1 + nI*(j-1)
       end
    elseif DiLevelNei_III[3,2,3] in (1,2)
@@ -1410,32 +1410,32 @@ function fillCellNeighbors!(batl, iCell_G, DiLevelNei_III, iNodeNei_III, nBlock_
       iAMR = 2^DiLevelNei_III[3,2,3]
 
       if iSibling == 2
-         for j = 1:nJ
+         @inbounds for j = 1:nJ
             iCell_G[end,j+1,end] = nIJK*(neiBlock-1) +
                nIJK/2 + 1 + nI*fld(j-1,iAMR)
          end
       elseif iSibling == 4
-         for j = 1:nJ
+         @inbounds for j = 1:nJ
             iCell_G[end,j+1,end] = nIJK*(neiBlock-1) +
                nIJK/2 + nIJ/2 + 1 + nI*fld(j-1,iAMR)
          end
       elseif iSibling == 5
-         for j = 1:nJ
+         @inbounds for j = 1:nJ
             iCell_G[end,j+1,end] = nIJK*(neiBlock-1) +
                nI/2 + 1 + nI*fld(j-1,iAMR)
          end
       elseif iSibling == 6
-         for j = 1:nJ
+         @inbounds for j = 1:nJ
             iCell_G[end,j+1,end] = nIJK*(neiBlock-1) +
                1 + nI*fld(j-1,iAMR)
          end
       elseif iSibling == 7
-         for j = 1:nJ
+         @inbounds for j = 1:nJ
             iCell_G[end,j+1,end] = nIJK*(neiBlock-1) +
                nIJ/2 + nI/2 + 1 + nI*fld(j-1,iAMR)
          end
       elseif iSibling == 8
-         for j = 1:nJ
+         @inbounds for j = 1:nJ
             iCell_G[end,j+1,end] = nIJK*(neiBlock-1) +
                nIJ/2 + 1 + nI*fld(j-1,iAMR)
          end
@@ -1446,7 +1446,7 @@ function fillCellNeighbors!(batl, iCell_G, DiLevelNei_III, iNodeNei_III, nBlock_
    if DiLevelNei_III[1,1,2] == 0
       neiBlock = nodeToGlobalBlock(batl, iNodeNei_III[1,1,2], nBlock_P)
 
-      for k = 1:nK
+      @inbounds for k = 1:nK
          iCell_G[1,1,k+1] = nIJK*(neiBlock-1) + nIJ*k
       end
    elseif DiLevelNei_III[1,1,2] in (1,2)
@@ -1456,32 +1456,32 @@ function fillCellNeighbors!(batl, iCell_G, DiLevelNei_III, iNodeNei_III, nBlock_
 
       iSibling = getSibling(iNodeNei_III, iTree_IA)
       if iSibling == 1
-         for k = 1:nK
+         @inbounds for k = 1:nK
             iCell_G[1,1,k+1] = nIJK*(neiBlock-1) +
                nIJ*(1 + fld(k-1,iAMR))
          end
       elseif iSibling == 2
-         for k = 1:nK
+         @inbounds for k = 1:nK
             iCell_G[1,1,k+1] = nIJK*(neiBlock-1) +
                nI*(nJ-1) + nI/2 + nIJ*fld(k-1,iAMR)
          end
       elseif iSibling == 3
-         for k = 1:nK
+         @inbounds for k = 1:nK
             iCell_G[1,1,k+1] = nIJK*(neiBlock-1) +
                nIJ/2 + nIJ*(1 + fld(k-1,iAMR))
          end
       elseif iSibling == 5
-         for k = 1:nK
+         @inbounds for k = 1:nK
             iCell_G[1,1,k+1] = nIJK*(neiBlock-1) +
                nIJK/2 + nIJ*(1 + fld(k-1,iAMR))
          end
       elseif iSibling == 6
-         for k = 1:nK
+         @inbounds for k = 1:nK
             iCell_G[1,1,k+1] = nIJK*(neiBlock-1) +
                nIJK/2 + nI*(nJ-1) + nI/2 + nIJ*fld(k-1,iAMR)
          end
       elseif iSibling == 7
-         for k = 1:nK
+         @inbounds for k = 1:nK
             iCell_G[1,1,k+1] = nIJK*(neiBlock-1) +
                nIJ*nJ/2 + nIJ/2 + nIJ*fld(k-1,iAMR)
          end
@@ -1492,7 +1492,7 @@ function fillCellNeighbors!(batl, iCell_G, DiLevelNei_III, iNodeNei_III, nBlock_
    if DiLevelNei_III[3,1,2] == 0
       neiBlock = nodeToGlobalBlock(batl, iNodeNei_III[4,1,2], nBlock_P)
 
-      for k = 1:nK
+      @inbounds for k = 1:nK
          iCell_G[end,1,k+1] = nIJK*(neiBlock-1) + nI*(nJ-1) + 1 + nIJ*(k-1)
       end
    elseif DiLevelNei_III[3,1,2] in (1,2)
@@ -1503,32 +1503,32 @@ function fillCellNeighbors!(batl, iCell_G, DiLevelNei_III, iNodeNei_III, nBlock_
       iAMR = 2^DiLevelNei_III[3,1,2]
 
       if iSibling == 1
-         for k = 1:nK
+         @inbounds for k = 1:nK
             iCell_G[end,1,k+1] = nIJK*(neiBlock-1) +
                nI*(nJ-1) + nI/2 + 1 + nIJ*fld(k-1,iAMR)
          end
       elseif iSibling == 2
-         for k = 1:nK
+         @inbounds for k = 1:nK
             iCell_G[end,1,k+1] = nIJK*(neiBlock-1) +
                nI*(nJ-1) + 1 + nIJ*fld(k-1,iAMR)
          end
       elseif iSibling == 4
-         for k = 1:nK
+         @inbounds for k = 1:nK
             iCell_G[end,1,k+1] = nIJK*(neiBlock-1) +
                nI*(nJ/2-1) + 1 + nIJ*fld(k-1,iAMR)
          end
       elseif iSibling == 5
-         for k = 1:nK
+         @inbounds for k = 1:nK
             iCell_G[end,1,k+1] = nIJK*(neiBlock-1) +
                nIJK/2 + nI*(nJ-1) + nI/2 + 1 + nIJ*fld(k-1,iAMR)
          end
       elseif iSibling == 6
-         for k = 1:nK
+         @inbounds for k = 1:nK
             iCell_G[end,1,k+1] = nIJK*(neiBlock-1) +
                nIJK/2 + nI*(nJ-1) + 1 + nIJ*fld(k-1,iAMR)
          end
       elseif iSibling == 8
-         for k = 1:nK
+         @inbounds for k = 1:nK
             iCell_G[end,1,k+1] = nIJK*(neiBlock-1) +
                nIJK/2 + nI*(nJ/2-1) + 1 + nIJ*fld(k-1,iAMR)
          end
@@ -1539,7 +1539,7 @@ function fillCellNeighbors!(batl, iCell_G, DiLevelNei_III, iNodeNei_III, nBlock_
    if DiLevelNei_III[1,3,2] == 0
       neiBlock = nodeToGlobalBlock(batl, iNodeNei_III[1,4,2], nBlock_P)
 
-      for k = 1:nK
+      @inbounds for k = 1:nK
          iCell_G[1,end,k+1] = nIJK*(neiBlock-1) + nI + nIJ*(k-1)
       end
    elseif DiLevelNei_III[1,3,2] in (1,2)
@@ -1550,32 +1550,32 @@ function fillCellNeighbors!(batl, iCell_G, DiLevelNei_III, iNodeNei_III, nBlock_
       iAMR = 2^DiLevelNei_III[1,3,2]
 
       if iSibling == 1
-         for k = 1:nK
+         @inbounds for k = 1:nK
             iCell_G[1,end,k+1] = nIJK*(neiBlock-1) +
                nIJ/2 + nI + nIJ*fld(k-1,iAMR)
          end
       elseif iSibling == 3
-         for k = 1:nK
+         @inbounds for k = 1:nK
             iCell_G[1,end,k+1] = nIJK*(neiBlock-1) +
                nI + nIJ*fld(k-1,iAMR)
          end
       elseif iSibling == 4
-         for k = 1:nK
+         @inbounds for k = 1:nK
             iCell_G[1,end,k+1] = nIJK*(neiBlock-1) +
                nI/2 + nIJ*fld(k-1,iAMR)
          end
       elseif iSibling == 5
-         for k = 1:nK
+         @inbounds for k = 1:nK
             iCell_G[1,end,k+1] = nIJK*(neiBlock-1) +
                nIJK/2 + nIJ/2 + nI + nIJ*fld(k-1,iAMR)
          end
       elseif iSibling == 7
-         for k = 1:nK
+         @inbounds for k = 1:nK
             iCell_G[1,end,k+1] = nIJK*(neiBlock-1) +
                nIJK/2 + nI + nIJ*fld(k-1,iAMR)
          end
       elseif iSibling == 8
-         for k = 1:nK
+         @inbounds for k = 1:nK
             iCell_G[1,end,k+1] = nIJK*(neiBlock-1) +
                nIJK/2 + nI/2 + nIJ*fld(k-1,iAMR)
          end
@@ -1585,7 +1585,7 @@ function fillCellNeighbors!(batl, iCell_G, DiLevelNei_III, iNodeNei_III, nBlock_
    # edge 12
    if DiLevelNei_III[3,3,2] == 0
       neiBlock = nodeToGlobalBlock(batl, iNodeNei_III[4,4,2], nBlock_P)
-      for k = 1:nK
+      @inbounds for k = 1:nK
          iCell_G[end,end,k+1] = nIJK*(neiBlock-1) + 1 + nIJ*(k-1)
       end
    elseif DiLevelNei_III[3,3,2] in (1,2)
@@ -1596,32 +1596,32 @@ function fillCellNeighbors!(batl, iCell_G, DiLevelNei_III, iNodeNei_III, nBlock_
       iAMR = 2^DiLevelNei_III[3,3,2]
 
       if iSibling == 2
-         for k = 1:nK
+         @inbounds for k = 1:nK
             iCell_G[end,end,k+1] = nIJK*(neiBlock-1) +
                nIJ/2 + 1 + nIJ*fld(k-1,iAMR)
          end
       elseif iSibling == 3
-         for k = 1:nK
+         @inbounds for k = 1:nK
             iCell_G[end,end,k+1] = nIJK*(neiBlock-1) +
                nI/2 + 1 + nIJ*fld(k-1,iAMR)
          end
       elseif iSibling == 4
-         for k = 1:nK
+         @inbounds for k = 1:nK
             iCell_G[end,end,k+1] = nIJK*(neiBlock-1) +
                1 + nIJ*fld(k-1,iAMR)
          end
       elseif iSibling == 6
-         for k = 1:nK
+         @inbounds for k = 1:nK
             iCell_G[end,end,k+1] = nIJK*(neiBlock-1) +
                nIJK/2 + nIJ/2 + 1 + nIJ*fld(k-1,iAMR)
          end
       elseif iSibling == 7
-         for k = 1:nK
+         @inbounds for k = 1:nK
             iCell_G[end,end,k+1] = nIJK*(neiBlock-1) +
                nIJK/2 + nI/2 + 1 + nIJ*fld(k-1,iAMR)
          end
       elseif iSibling == 8
-         for k = 1:nK
+         @inbounds for k = 1:nK
             iCell_G[end,end,k+1] = nIJK*(neiBlock-1) +
                nIJK/2 + 1 + nIJ*fld(k-1,iAMR)
          end
