@@ -394,8 +394,8 @@ end
 """
    find_grid_block(batl, xyz_D)
 
-Return block index that contains a point. Input location should be given in 
-Cartesian coordinates.
+Return processor local block index that contains a point. Input location should
+be given in Cartesian coordinates.
 """
 function find_grid_block(batl::Batl, xyz_D)
 
@@ -696,30 +696,6 @@ function find_neighbor_for_anynode(batl::Batl, iNode)
    return iNodeNei_III, DiLevelNei_III
 end
 
-"""
-Return the mapping from local block index to global node index.
-The block index stored in the tree is the processor local index, which should be
-converted into global block index.
-Note that there are gaps between local used block indexes! 
-"""
-function block_to_node(batl::Batl)
-
-   nLevelMax, iNodeMorton_I = order_tree(batl)
-
-   nNodeUsed = length(iNodeMorton_I)
-
-   iNode_B = fill(Int32(0), nNodeUsed)
-   iTree_IA = batl.iTree_IA
-
-   for iMorton = 1:nNodeUsed
-      iNode = iNodeMorton_I[iMorton]
-      iBlock = iTree_IA[block_,iNode]
-      iNode_B[iBlock] = iNode
-   end
-
-   return iNode_B
-end
-
 "Return global block index for the node."
 function nodeToGlobalBlock(batl::Batl, iNode::Int32, nBlock_P)
 
@@ -738,27 +714,6 @@ function nodeToGlobalBlock(batl::Batl, iNode::Int32, nBlock_P)
 
    return globalBlock
 end
-
-
-function nodeToGlobalBlock(batl::Batl, iNodes::Array, nBlock_P)
-
-   iTree_IA = batl.iTree_IA
-
-   globalBlocks = similar(iNodes, Int32)
-
-   for iNode = 1:length(iNodes)   
-      iProc = iTree_IA[proc_, iNodes[iNode]]
-      localNodes_B = findall(x->x==iProc, iTree_IA[proc_,:])
-      localBlocks_B = iTree_IA[block_,localNodes_B]
-      myRank = findfirst(x->x==iNodes[iNode], localNodes_B)
-      localBlocksSorted_B = sort(localBlocks_B)
-      localOrder = findfirst(x->x==localBlocks_B[myRank], localBlocksSorted_B)
-      globalBlocks[iNode] = localOrder + nBlock_P[iProc+1]
-   end
-
-   return globalBlocks
-end
-
 
 "Get cell connectivity list."
 function getConnectivity(batl::Batl)

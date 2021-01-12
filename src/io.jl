@@ -81,6 +81,8 @@ function readdata(filenameIn::AbstractString; dir=".", npict=1, verbose=false)
       getbinary!(x, w, fileID, filehead, T)
    end
 
+   close(fileID)
+
    #setunits(filehead,"")
 
    verbose && showhead(filelist, filehead)
@@ -88,8 +90,6 @@ function readdata(filenameIn::AbstractString; dir=".", npict=1, verbose=false)
 	data = Data(filehead, x, w, filelist)
 
    verbose && @info "Finished reading $(filelist.name)"
-
-   close(fileID)
 
    return data
 end

@@ -64,8 +64,7 @@ end
    @test extrema(data) == (-0.105, 258.0)
 end
 
-@testset "vtk" begin
-   @info("VTK conversion test.")
+@testset "VTK" begin
    filename = "data/3d_bin.dat"
    head, data, connectivity = readtecdata(filename)
    @test maximum(connectivity) ≤ head[:nNode] # check if it's read correctly
@@ -77,6 +76,9 @@ end
    filetag = "data/3d_mhd_amr/3d__mhd_1_t00000000_n00000000"
    run(`tar -C data -zxf data/3d_mhd_amr.tar.gz`)
    batl = Batl(readhead(filetag*".info"), readtree(filetag)...)
+   # local block index check
+   @test Batsrus.find_grid_block(batl, [1.0, 0.0, 0.0]) == 4 
+   @test Batsrus.find_grid_block(batl, [100.0, 0.0, 0.0]) == -100
    connectivity = getConnectivity(batl)
    sha_str = bytes2hex(sha256(string(connectivity)))
    @test sha_str == "c6c5a65a46d86a9ba4096228c1516f89275e45e295cd305eb70c281a770ede74"
