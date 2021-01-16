@@ -77,6 +77,10 @@ Several issues worth noticing:
 * 3D unformatted output as stored as it is.
 * The simulation is typically done with multiple MPI processes. In the tree structure, each node only records the MPI process local block index. What makes it more complicated is that the local block indexes on a given MPI process may have skipped numbers because they are not in the physical simulation domain. This means that in order to get the true global block indexes, one needs to count how many blocks are used on all MPI processes with lower ranks, and also the order of the current node based on local block index on this MPI process.
 * It would be pretty difficult to count the number of elements in the connectivity list. Appending to an array is a very expensive operation: counting the elements in the first loop, preallocating the array and then repeat the same computation to fill in the list results in over 1000 times speedup.
+* The implementation in v0.2.3 inherits the bug from BATSRUS `ModWriteTecplot` that will generate duplicate voxel grid. For example, imagine a coarse block which is surrounded by refined blocks all around. On edge 8, the two refined face neighbor will both think they are in charge of writing the connectivity for the cells around the edge. This does not cause any serious issues as of now, so I don't fix it. Speaking of fixing that, there are two ways:
+  * `fillCellNeighbors!` not only deals with coarsened neighbors, but also the refined neighbors. This means that literally we need to implement the `message_pass_cell` completely. We still do a two-round process, write everything without checking, and in the end before IO remove the duplicate rows. This may be even faster then implementing some complicated writing rules to avoid duplicating.
+  *  Polish the writing rules even further. This requires me to consider all possible cases. As a first step, for the above example case, neither of the two face neighbor should write the connectivity, but instead the edge neighbor should write.
+* Many function names are inherited from BATL. I may consider rename them in the future if more general task is required.
 
 ### Ordering of connectivity
 

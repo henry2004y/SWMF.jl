@@ -779,7 +779,7 @@ function getConnectivity(batl::Batl)
 
             fillCellNeighbors!(batl, iCell_G, DiLevelNei_III, iNodeNei_III, nBlock_P)
 
-            # In ModWriteTecplot, the first three conditions are needed only for certain 2D cases.
+            # Check who is in charge of writing following the prescribed rules.
             if DiLevelNei_III[3,3,2] < 0
                iCell_G[end,end,:] .= 0
             end
@@ -807,11 +807,7 @@ function getConnectivity(batl::Batl)
                   if any(iCell_G[i+1:i+2,j+1:j+2,k+1:k+2] .== 0)
                      continue
                   end
-                  if iRound == 1
-                     nElem += 1
-                  else
-                     iElem += 1
-                  end
+                  iRound == 1 ? nElem += 1 : iElem += 1
                   if iRound == 2
                      connectivity[:,iElem] = [
                         iCell_G[i+1,j+1,k+1],
@@ -840,6 +836,10 @@ function getConnectivity(batl::Batl)
       end
    end
 
+   # The current writing process will generate duplicate connectivity rows at
+   # edge cells between coarse and fine blocks. WriteTecplot module function
+   # has the same issue.
+   #return unique(connectivity, dims=2)
    return connectivity
 end
 
