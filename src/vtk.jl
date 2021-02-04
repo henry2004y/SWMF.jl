@@ -874,16 +874,16 @@ function fillCellNeighbors!(batl, iCell_G, DiLevelNei_III, iNodeNei_III, nBlock_
 
          if iSibling == 1
             iCell_G[1,j+1,k+1] = nIJK*(neiBlock-1) +
-               nI*(1 + floor(Int, (j-1)/2)) + nIJ*floor(Int, (k-1)/2)
+               nI*(1 + (j-1)÷2) + nIJ*((k-1)÷2)
          elseif iSibling == 3
             iCell_G[1,j+1,k+1] = nIJK*(neiBlock-1) +
-               nIJ/2 + nI*(1 + floor(Int, (j-1)/2)) + nIJ*floor(Int, (k-1)/2)
+               nIJ/2 + nI*(1 + (j-1)÷2) + nIJ*((k-1)÷2)
          elseif iSibling == 5
             iCell_G[1,j+1,k+1] = nIJK*(neiBlock-1) +
-               nIJK/2 + nI*(1 + floor(Int, (j-1)/2)) + nIJ*floor(Int, (k-1)/2)
+               nIJK/2 + nI*(1 + (j-1)÷2) + nIJ*((k-1)÷2)
          elseif iSibling == 7
             iCell_G[1,j+1,k+1] = nIJK*(neiBlock-1) +
-               nIJK/2 + nIJ/2 + nI*(1 + floor(Int, (j-1)/2)) + nIJ*floor(Int, (k-1)/2)
+               nIJK/2 + nIJ/2 + nI*(1 + (j-1)÷2) + nIJ*((k-1)÷2)
          end
       end
    end
@@ -903,16 +903,16 @@ function fillCellNeighbors!(batl, iCell_G, DiLevelNei_III, iNodeNei_III, nBlock_
 
          if iSibling == 2
             iCell_G[end,j+1,k+1] = nIJK*(neiBlock-1) +
-               1 + nI*floor(Int, (j-1)/2) + nIJ*floor(Int, (k-1)/2)
+               1 + nI*((j-1)÷2) + nIJ*((k-1)÷2)
          elseif iSibling == 4
             iCell_G[end,j+1,k+1] = nIJK*(neiBlock-1) +
-               nIJ/2 + 1 + nI*floor(Int, (j-1)/2) + nIJ*floor(Int, (k-1)/2)
+               nIJ/2 + 1 + nI*((j-1)÷2) + nIJ*((k-1)÷2)
          elseif iSibling == 6
             iCell_G[end,j+1,k+1] = nIJK*(neiBlock-1) +
-               nIJK/2 + 1 + nI*floor(Int, (j-1)/2) + nIJ*floor(Int, (k-1)/2)
+               nIJK/2 + 1 + nI*((j-1)÷2) + nIJ*((k-1)÷2)
          elseif iSibling == 8
             iCell_G[end,j+1,k+1] = nIJK*(neiBlock-1) +
-               nIJK/2 + nIJ/2 + 1 + nI*floor(Int, (j-1)/2) + nIJ*floor(Int, (k-1)/2)
+               nIJK/2 + nIJ/2 + 1 + nI*((j-1)÷2) + nIJ*((k-1)÷2)
          end
       end
    end
@@ -926,16 +926,16 @@ function fillCellNeighbors!(batl, iCell_G, DiLevelNei_III, iNodeNei_III, nBlock_
 
          if iSibling == 1
             iCell_G[i+1,1,k+1] = nIJK*(neiBlock-1) +
-               nI*(nJ-1) + 1 + floor(Int, (i-1)/2) + nIJ*floor(Int, (k-1)/2)
+               nI*(nJ-1) + 1 + (i-1)÷2 + nIJ*((k-1)÷2)
          elseif iSibling == 2
             iCell_G[i+1,1,k+1] = nIJK*(neiBlock-1) +
-               nI*(nJ-1) + nI/2 + 1 + floor(Int, (i-1)/2) + nIJ*floor(Int, (k-1)/2)
+               nI*(nJ-1) + nI/2 + 1 + (i-1)÷2 + nIJ*((k-1)÷2)
          elseif iSibling == 5
             iCell_G[i+1,1,k+1] = nIJK*(neiBlock-1) +
-               nIJK/2 + nI*(nJ-1) + 1 + floor(Int, (i-1)/2) + nIJ*floor(Int, (k-1)/2)
+               nIJK/2 + nI*(nJ-1) + 1 + (i-1)÷2 + nIJ*((k-1)÷2)
          elseif iSibling == 6
             iCell_G[i+1,1,k+1] = nIJK*(neiBlock-1) +
-               nIJK/2 + nI*(nJ-1) + nI/2 + 1 + floor(Int, (i-1)/2) + nIJ*floor(Int, (k-1)/2)
+               nIJK/2 + nI*(nJ-1) + nI/2 + 1 + (i-1)÷2 + nIJ*((k-1)÷2)
          end
       end
    end
@@ -955,16 +955,16 @@ function fillCellNeighbors!(batl, iCell_G, DiLevelNei_III, iNodeNei_III, nBlock_
 
          if iSibling == 3
             iCell_G[i+1,end,k+1] = nIJK*(neiBlock-1) +
-               1 + floor(Int, (i-1)/2) + nIJ*floor(Int, (k-1)/2)
+               1 + (i-1)÷2 + nIJ*((k-1)÷2)
          elseif iSibling == 4
             iCell_G[i+1,end,k+1] = nIJK*(neiBlock-1) +
-               nI/2 + 1 + floor(Int, (i-1)/2) + nIJ*floor(Int, (k-1)/2)
+               nI/2 + 1 + (i-1)÷2 + nIJ*((k-1)÷2)
          elseif iSibling == 7
             iCell_G[i+1,end,k+1] = nIJK*(neiBlock-1) +
-               nIJK/2 + 1 + floor(Int, (i-1)/2) + nIJ*floor(Int, (k-1)/2)
+               nIJK/2 + 1 + (i-1)÷2 + nIJ*((k-1)÷2)
          elseif iSibling == 8
             iCell_G[i+1,end,k+1] = nIJK*(neiBlock-1) +
-               nIJK/2 + nI/2 + 1 + floor(Int, (i-1)/2) + nIJ*floor(Int, (k-1)/2)
+               nIJK/2 + nI/2 + 1 + (i-1)÷2 + nIJ*((k-1)÷2)
          end
       end
    end
@@ -978,16 +978,16 @@ function fillCellNeighbors!(batl, iCell_G, DiLevelNei_III, iNodeNei_III, nBlock_
 
          if iSibling == 1
             iCell_G[i+1,j+1,1] = nIJK*neiBlock -
-               nIJ + 1 + floor(Int, (i-1)/2) + nI*floor(Int, (j-1)/2)
+               nIJ + 1 + (i-1)÷2 + nI*((j-1)÷2)
          elseif iSibling == 2
             iCell_G[i+1,j+1,1] = nIJK*neiBlock -
-               nIJ + nI/2 + 1 + floor(Int, (i-1)/2) + nI*floor(Int, (j-1)/2)
+               nIJ + nI/2 + 1 + (i-1)÷2 + nI*((j-1)÷2)
          elseif iSibling == 3
             iCell_G[i+1,j+1,1] = nIJK*neiBlock -
-               nIJ/2 + 1 + floor(Int, (i-1)/2) + nI*floor(Int, (j-1)/2)
+               nIJ/2 + 1 + (i-1)÷2 + nI*((j-1)÷2)
          elseif iSibling == 4
             iCell_G[i+1,j+1,1] = nIJK*neiBlock -
-               nIJ/2 + nI/2 + 1 + floor(Int, (i-1)/2) + nI*floor(Int, (j-1)/2)
+               nIJ/2 + nI/2 + 1 + (i-1)÷2 + nI*((j-1)÷2)
          end
       end
    end
@@ -1007,16 +1007,16 @@ function fillCellNeighbors!(batl, iCell_G, DiLevelNei_III, iNodeNei_III, nBlock_
 
          if iSibling == 5
             iCell_G[i+1,j+1,end] = nIJK*(neiBlock-1) +
-               1 + floor(Int, (i-1)/2) + nI*floor(Int, (j-1)/2)
+               1 + (i-1)÷2 + nI*((j-1)÷2)
          elseif iSibling == 6
             iCell_G[i+1,j+1,end] = nIJK*(neiBlock-1) +
-               nI/2 + 1 + floor(Int, (i-1)/2) + nI*floor(Int, (j-1)/2)
+               nI/2 + 1 + (i-1)÷2 + nI*((j-1)÷2)
          elseif iSibling == 7
             iCell_G[i+1,j+1,end] = nIJK*(neiBlock-1) +
-               nIJ/2 + 1 + floor(Int, (i-1)/2) + nI*floor(Int, (j-1)/2)
+               nIJ/2 + 1 + (i-1)÷2 + nI*((j-1)÷2)
          elseif iSibling == 8
             iCell_G[i+1,j+1,end] = nIJK*(neiBlock-1) +
-               nIJ/2 + nI/2 + 1 + floor(Int, (i-1)/2) + nI*floor(Int, (j-1)/2)
+               nIJ/2 + nI/2 + 1 + (i-1)÷2 + nI*((j-1)÷2)
          end
       end   
    end
